@@ -1,0 +1,32 @@
+/* CSS pour masquer tous les éléments liés aux photos */
+
+/* Masquer les photos dans les cartes de soldats */
+.soldier-card-photo {
+    display: none !important;
+}
+
+/* Masquer la section photo dans le dossier soldat */
+.soldier-file-photo,
+#photo-container,
+#edit-photo-btn {
+    display: none !important;
+}
+
+/* Ajuster la grille du dossier soldat pour ne pas avoir d'espace vide */
+.soldier-file-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+}
+
+/* Masquer les boutons d'édition de photo */
+button[id*="photo"],
+button[data-action*="photo"] {
+    display: none !important;
+}
+
+/* Masquer les références aux photos dans les formulaires */
+.form-group:has(input[type="file"]),
+.form-group:has(label:contains("Photo")),
+input[type="file"][accept*="image"] {
+    display: none !important;
+}

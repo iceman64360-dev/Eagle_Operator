@@ -161,62 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return [];
     }
     
-    // Fonction pour gérer les photos des soldats
-    function getSoldierPhoto(soldier) {
-        // Vérifier si l'ID du soldat est valide
-        if (!soldier || !soldier.id) {
-            console.error('ID de soldat invalide');
-            return Promise.resolve('./assets/images/default-avatar.png');
-        }
-
-        // Vérifier d'abord si la photo existe dans localStorage
-        const photoKey = `eagleOperator_photo_${soldier.id}`;
-        const savedPhoto = localStorage.getItem(photoKey);
-        
-        if (savedPhoto) {
-            return Promise.resolve(savedPhoto);
-        }
-        
-        // Si pas dans localStorage, essayer de charger depuis le dossier statique
-        const photoUrl = `./data/photos/${soldier.id}.jpg`;
-        
-        // Vérifier si la photo existe
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = () => {
-                // Sauvegarder l'URL dans localStorage pour accès futur
-                localStorage.setItem(photoKey, photoUrl);
-                resolve(photoUrl);
-            };
-            img.onerror = () => {
-                // Si la photo n'existe pas, utiliser l'avatar par défaut
-                resolve('./assets/images/default-avatar.png');
-            };
-            img.src = photoUrl;
-        });
-    }
-    
-    // Fonction pour sauvegarder une photo de soldat
-    function saveSoldierPhoto(soldier, imageData) {
-        // Créer une clé unique pour la photo basée sur le matricule du soldat
-        const photoKey = `eagleOperator_photo_${soldier.id}`;
-        
-        // Stocker la photo dans le localStorage avec une clé unique
-        localStorage.setItem(photoKey, imageData);
-        
-        // Mettre à jour la référence de la photo dans les données du soldat
-        soldier.photoRef = photoKey;
-        
-        // Supprimer l'ancienne référence si elle existe
-        if (soldier.photo) {
-            delete soldier.photo;
-        }
-        
-        // Sauvegarder les modifications
-        saveSoldiersToStorage();
-        
-        return photoKey;
-    }
+    // Fonctions de gestion des photos supprimées selon la demande du client
 
     // Fonction pour déterminer le rôle d'un soldat dans une unité
     function getSoldierRole(soldierId) {
@@ -314,12 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 unitHtml = `<p><strong>Unité:</strong> ${soldier.unité || 'N/A'}</p>`;
             }
             
-            // Préparer l'affichage de la photo si elle existe
+            // Photos supprimées selon la demande du client
             let photoHtml = '';
-            const soldierPhoto = getSoldierPhoto(soldier);
-            if (soldierPhoto) {
-                photoHtml = `<div class="soldier-card-photo"><img src="${soldierPhoto}" alt="Photo de ${soldier.pseudo}"></div>`;
-            }
             
             // Déterminer la classe de couleur pour le statut
             let statutColorClass = '';
