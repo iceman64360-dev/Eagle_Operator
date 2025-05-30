@@ -195,25 +195,40 @@ function updateUnitsTable(soldiersData, unitsData) {
         // Créer la ligne du tableau
         const row = document.createElement('tr');
         
-        // Créer les liens cliquables pour les noms d'unités et de commandants
-        const unitLink = `<a href="unites.html?unit=${unit.id_unite}" class="clickable-name">${unit.nom}</a>`;
+        // Déterminer la classe de couleur en fonction du type d'unité
+        let unitTypeClass = 'unit-default';
+        if (unit.type) {
+            const type = unit.type.toLowerCase();
+            if (type.includes('quartier') || type.includes('qg')) {
+                unitTypeClass = 'unit-hq';
+            } else if (type.includes('compagnie')) {
+                unitTypeClass = 'unit-company';
+            } else if (type.includes('section')) {
+                unitTypeClass = 'unit-section';
+            } else if (type.includes('escouade')) {
+                unitTypeClass = 'unit-squad';
+            }
+        }
         
-        // Créer le lien pour le commandant s'il existe
-        let commandantLink = 'Non assigné';
+        // Créer les boutons pour les noms d'unités avec code couleur
+        const unitLink = `<a href="unites.html?unit=${unit.id_unite}" class="unit-button ${unitTypeClass}">${unit.nom}</a>`;
+        
+        // Créer le bouton pour le commandant s'il existe
+        let commandantLink = '<span class="commander-empty">Non assigné</span>';
         if (unit.commandant_id) {
             const commandantSoldier = soldiersData.find(s => s.id === unit.commandant_id);
             if (commandantSoldier) {
-                commandantLink = `<a href="soldats.html?id=${commandantSoldier.id}" class="clickable-name">${commandant}</a>`;
+                commandantLink = `<a href="soldats.html?id=${commandantSoldier.id}" class="commander-button">${commandant}</a>`;
             }
         }
         
         row.innerHTML = `
             <td>${unitLink}</td>
             <td>${commandantLink}</td>
-            <td>${effectifs}</td>
+            <td><span class="effectif-count">${effectifs}</span></td>
             <td><span class="badge ${statutClass}">${statut}</span></td>
             <td>
-                <a href="unites.html?unit=${unit.id_unite}" class="detail-button">Détail</a>
+                <a href="unites.html?unit=${unit.id_unite}" class="action-detail-button">Détail</a>
             </td>
         `;
         
