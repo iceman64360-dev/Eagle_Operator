@@ -357,16 +357,98 @@ document.addEventListener('DOMContentLoaded', () => {
     window.voirDossier = function(soldierId) {
         console.log('Ouverture du dossier du soldat:', soldierId);
         
-        // Récupérer les données du soldat
         const soldier = allSoldiersData.find(s => s.id === soldierId);
         if (!soldier) {
-            alert('Soldat non trouvé.');
+            console.error(`Soldat avec ID ${soldierId} non trouvé`);
             return;
         }
         
+        // Initialiser la progression de la recrue si elle n'existe pas et que le statut est "recrue"
+        if (soldier.statut && soldier.statut.toLowerCase() === 'recrue' && !soldier.progression_recrue) {
+            soldier.progression_recrue = {
+                formation_initiale: {
+                    complete: false,
+                    date_debut: new Date().toISOString().split('T')[0],
+                    date_fin: null,
+                    note: null
+                },
+                specialisation: {
+                    complete: false,
+                    date_debut: null,
+                    date_fin: null,
+                    specialite: null,
+                    note: null
+                },
+                integration_unite: {
+                    complete: false,
+                    date_debut: null,
+                    date_fin: null,
+                    unite: soldier.unité || null,
+                    note: null
+                },
+                evaluation_finale: {
+                    complete: false,
+                    date: null,
+                    resultat: null,
+                    note: null
+                }
+            };
+            // Sauvegarder les modifications
+            saveSoldiersToStorage();
+        }
+        
         // Stocker l'ID du soldat actuel dans un attribut de la modale pour y accéder plus tard
-        const modal = document.getElementById('soldierFileModal');
-        modal.setAttribute('data-soldier-id', soldierId);
+        document.getElementById('soldierFileModal').setAttribute('data-soldier-id', soldierId);
+        
+        // Mettre à jour le titre de la modale
+        document.getElementById('soldierFileTitle').textContent = soldier.pseudo || soldier.id;
+        
+        // Afficher ou masquer l'onglet Progression selon le statut du soldat
+        const progressionTabBtn = document.getElementById('progression-tab-btn');
+        if (soldier.statut && soldier.statut.toLowerCase() === 'recrue') {
+            progressionTabBtn.classList.remove('hidden-tab');
+        } else {
+            progressionTabBtn.classList.add('hidden-tab');
+        }
+        
+        // Si c'est une recrue, initialiser l'affichage de la progression
+        if (soldier.statut && soldier.statut.toLowerCase() === 'recrue') {
+            // S'assurer que la progression est initialisée
+            if (!soldier.progression_recrue) {
+                soldier.progression_recrue = {
+                    formation_initiale: {
+                        complete: false,
+                        date_debut: new Date().toISOString().split('T')[0],
+                        date_fin: null,
+                        note: null
+                    },
+                    specialisation: {
+                        complete: false,
+                        date_debut: null,
+                        date_fin: null,
+                        specialite: null,
+                        note: null
+                    },
+                    integration_unite: {
+                        complete: false,
+                        date_debut: null,
+                        date_fin: null,
+                        unite: soldier.unité || null,
+                        note: null
+                    },
+                    evaluation_finale: {
+                        complete: false,
+                        date: null,
+                        resultat: null,
+                        note: null
+                    }
+                };
+                // Sauvegarder les modifications
+                saveSoldiersToStorage();
+            }
+            // Mettre à jour l'affichage de la progression
+            updateProgressionDisplay(soldier);
+        }
         
         // Récupérer le rôle du soldat
         const role = getSoldierRole(soldierId);

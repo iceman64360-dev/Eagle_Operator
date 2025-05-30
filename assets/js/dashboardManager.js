@@ -17,8 +17,8 @@ function initDashboard() {
     // Mettre à jour le tableau des unités
     updateUnitsTable(soldiersData, unitsData);
     
-    // Mettre à jour l'activité récente
-    updateRecentActivity();
+    // Mettre à jour la progression des recrues
+    updateRecruitProgress(soldiersData);
 }
 
 // Récupérer les données des soldats depuis le localStorage
@@ -238,52 +238,75 @@ function updateUnitsTable(soldiersData, unitsData) {
     });
 }
 
-// Mettre à jour l'activité récente
-function updateRecentActivity() {
-    const activityList = document.getElementById('recent-activity');
-    if (!activityList) return;
+// Mettre à jour la progression des recrues
+function updateRecruitProgress(soldiersData) {
+    const progressContainer = document.getElementById('recruit-progress');
+    if (!progressContainer) return;
     
-    // Simuler des activités récentes pour la démo
-    const activities = [
-        { type: 'add', message: 'Nouvelle recrue ajoutée', time: '10 min' },
-        { type: 'edit', message: 'Statut de soldat mis à jour', time: '30 min' },
-        { type: 'unit', message: 'Unité Alpha créée', time: '1 heure' },
-        { type: 'status', message: '2 soldats marqués inactifs', time: '3 heures' }
-    ];
+    // Calculer les statistiques de progression des recrues
+    const stats = calculateRecruitProgressStats(soldiersData);
     
-    // Vider la liste
-    activityList.innerHTML = '';
+    // Mettre à jour les compteurs
+    document.getElementById('total-recruits').textContent = stats.totalRecruits;
+    document.getElementById('recruits-initial').textContent = stats.inInitialTraining;
+    document.getElementById('recruits-specialization').textContent = stats.inSpecialization;
+    document.getElementById('recruits-integration').textContent = stats.inUnitIntegration;
+    document.getElementById('recruits-evaluation').textContent = stats.inFinalEvaluation;
     
-    // Ajouter les activités
-    activities.forEach(activity => {
-        const li = document.createElement('li');
-        let icon = '';
+    // Mettre à jour la barre de progression globale
+    const totalSteps = stats.totalRecruits * 4; // 4 étapes par recrue
+    const completedSteps = (stats.inSpecialization * 1) + (stats.inUnitIntegration * 2) + (stats.inFinalEvaluation * 3) + (stats.completedTraining * 4);
+    const progressPercentage = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+    
+    const progressBar = document.getElementById('recruits-progress-bar');
+    if (progressBar) {
+        progressBar.style.width = `${progressPercentage}%`;
+        document.getElementById('recruits-progress-percentage').textContent = `${progressPercentage}%`;
+    }
+    
+    // Afficher les recrues récemment promues
+    const recentPromotionsList = document.getElementById('recent-promotions');
+    if (recentPromotionsList) {
+        recentPromotionsList.innerHTML = '';
         
-        switch(activity.type) {
-            case 'add':
-                icon = '<i class="fas fa-user-plus text-success"></i>';
-                break;
-            case 'edit':
-                icon = '<i class="fas fa-edit text-primary"></i>';
-                break;
-            case 'unit':
-                icon = '<i class="fas fa-shield-alt text-warning"></i>';
-                break;
-            case 'status':
-                icon = '<i class="fas fa-exchange-alt text-danger"></i>';
-                break;
+        if (stats.recentlyPromoted.length === 0) {
+            recentPromotionsList.innerHTML = '<li class="no-data">Aucune promotion récente</li>';
+        } else {
+            stats.recentlyPromoted.forEach(soldier => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="promotion-item">
+                        <span class="promotion-icon"><i class="fas fa-medal text-warning"></i></span>
+                        <div class="promotion-content">
+                            <div class="promotion-message">${soldier.pseudo} promu au statut actif</div>
+                            <div class="promotion-time">${formatDate(soldier.date)}</div>
+                        </div>
+                    </div>
+                `;
+                recentPromotionsList.appendChild(li);
+            });
         }
-        
-        li.innerHTML = `
-            <div class="activity-item">
-                <span class="activity-icon">${icon}</span>
-                <div class="activity-content">
-                    <div class="activity-message">${activity.message}</div>
-                    <div class="activity-time">${activity.time}</div>
-                </div>
-            </div>
-        `;
-        
-        activityList.appendChild(li);
-    });
+    }
 }
+
+// Fonction pour formater une date
+function formatDate(dateString) {
+    if (!dateString) return '';
+    
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now - date);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) {
+        return 'Aujourd\'hui';
+    } else if (diffDays === 1) {
+        return 'Hier';
+    } else if (diffDays < 7) {
+        return `Il y a ${diffDays} jours`;
+    } else {
+        return date.toLocaleDateString('fr-FR');
+    }
+}
+
+// Note: calculateRecruitProgressStats est importé depuis progressionManager.js

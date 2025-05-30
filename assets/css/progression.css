@@ -1,0 +1,223 @@
+/* Styles pour le système de progression des recrues */
+
+/* Éléments cachés */
+.hidden-tab {
+    display: none;
+}
+
+.hidden-input {
+    display: none;
+}
+
+.progression-container {
+    margin: 20px 0;
+    padding: 20px;
+    background-color: #232830;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.progression-track {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.progression-step {
+    display: flex;
+    margin-bottom: 40px;
+    position: relative;
+}
+
+.progression-step:last-child {
+    margin-bottom: 0;
+}
+
+.step-indicator {
+    position: relative;
+    margin-right: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #3a3f48;
+    color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    border: 2px solid #4a505c;
+    transition: all 0.3s ease;
+}
+
+.step-line {
+    width: 2px;
+    flex-grow: 1;
+    background-color: #3a3f48;
+    position: absolute;
+    top: 50px;
+    bottom: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.progression-step:last-child .step-line {
+    display: none;
+}
+
+.step-content {
+    flex: 1;
+    background-color: #1a1d21;
+    border-radius: 8px;
+    padding: 15px;
+    border-left: 4px solid #3a3f48;
+    transition: all 0.3s ease;
+}
+
+.step-content h4 {
+    margin-top: 0;
+    color: #ffbf00;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
+.step-details {
+    margin-bottom: 15px;
+}
+
+.step-details p {
+    margin: 8px 0;
+    font-size: 0.9rem;
+}
+
+.step-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* États des étapes */
+.step-pending .step-number {
+    background-color: #3a3f48;
+    border-color: #4a505c;
+}
+
+.step-in-progress .step-number {
+    background-color: #f39c12;
+    border-color: #e67e22;
+    color: #1a1d21;
+}
+
+.step-in-progress .step-content {
+    border-left-color: #f39c12;
+}
+
+.step-completed .step-number {
+    background-color: #2ecc71;
+    border-color: #27ae60;
+    color: #1a1d21;
+}
+
+.step-completed .step-content {
+    border-left-color: #2ecc71;
+}
+
+.step-failed .step-number {
+    background-color: #e74c3c;
+    border-color: #c0392b;
+    color: #1a1d21;
+}
+
+.step-failed .step-content {
+    border-left-color: #e74c3c;
+}
+
+/* Barre de progression */
+.progression-overview {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.progression-bar-container {
+    height: 10px;
+    background-color: #3a3f48;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progression-bar {
+    height: 100%;
+    background-color: #ffbf00;
+    width: 0%;
+    transition: width 0.5s ease;
+}
+
+.progression-percentage {
+    font-size: 0.9rem;
+    color: #b0b0b0;
+}
+
+.progression-percentage-value {
+    font-weight: bold;
+    color: #ffbf00;
+}
+
+/* Boutons spécifiques */
+.success-btn {
+    background-color: #2ecc71;
+    color: #1a1d21;
+}
+
+.success-btn:hover {
+    background-color: #27ae60;
+}
+
+.danger-btn {
+    background-color: #e74c3c;
+    color: #ffffff;
+}
+
+.danger-btn:hover {
+    background-color: #c0392b;
+}
+
+/* Masquer les boutons selon l'état */
+.step-pending #btn-complete-formation-initiale,
+.step-pending #btn-complete-specialisation,
+.step-pending #btn-complete-integration,
+.step-pending #btn-pass-evaluation,
+.step-pending #btn-fail-evaluation {
+    display: none;
+}
+
+.step-in-progress #btn-start-specialisation,
+.step-in-progress #btn-start-integration,
+.step-in-progress #btn-start-evaluation {
+    display: none;
+}
+
+.step-completed #btn-start-specialisation,
+.step-completed #btn-complete-specialisation,
+.step-completed #btn-start-integration,
+.step-completed #btn-complete-integration,
+.step-completed #btn-start-evaluation,
+.step-completed #btn-pass-evaluation,
+.step-completed #btn-fail-evaluation {
+    display: none;
+}
+
+.step-failed #btn-start-specialisation,
+.step-failed #btn-complete-specialisation,
+.step-failed #btn-start-integration,
+.step-failed #btn-complete-integration,
+.step-failed #btn-start-evaluation,
+.step-failed #btn-pass-evaluation,
+.step-failed #btn-fail-evaluation {
+    display: none;
+}

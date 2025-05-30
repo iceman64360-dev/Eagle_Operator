@@ -259,6 +259,86 @@
             margin-top: 5px;
             display: inline-block;
         }
+        
+        /* Styles pour la progression des recrues */
+        .progression-overview {
+            background-color: #232830;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 25px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .progression-overview h3 {
+            color: #ffbf00;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+        }
+        
+        .progression-bar-container {
+            height: 12px;
+            background-color: #1a1d21;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            border: 1px solid #2c313a;
+        }
+        
+        .progression-bar {
+            height: 100%;
+            background-color: #2ecc71;
+            width: 0;
+            transition: width 1s ease-in-out;
+        }
+        
+        .progression-percentage {
+            text-align: center;
+            font-weight: bold;
+            color: #e0e0e0;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 15px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .promotion-item {
+            display: flex;
+            padding: 15px;
+            border-bottom: 1px solid #2c313a;
+        }
+        
+        .promotion-icon {
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 191, 0, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+        
+        .promotion-content {
+            flex: 1;
+        }
+        
+        .promotion-message {
+            margin-bottom: 5px;
+        }
+        
+        .promotion-time {
+            font-size: 12px;
+            color: #6c757d;
+            background-color: rgba(108, 117, 125, 0.1);
+            padding: 3px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -368,31 +448,58 @@
             </table>
         </div>
         
-        <!-- Section Activité Récente -->
-        <div class="dashboard-section">
-            <h2><i class="fas fa-history"></i> Activité récente</h2>
-            <ul class="activity-list" id="recent-activity">
-                <li class="activity-item">
-                    <div class="activity-icon"><i class="fas fa-user-plus"></i></div>
-                    <div class="activity-content">
-                        <div>Nouvelle recrue ajoutée</div>
-                        <div class="activity-time">10 min</div>
-                    </div>
-                </li>
-                <li class="activity-item">
-                    <div class="activity-icon"><i class="fas fa-edit"></i></div>
-                    <div class="activity-content">
-                        <div>Statut de soldat mis à jour</div>
-                        <div class="activity-time">30 min</div>
-                    </div>
-                </li>
-                <li class="activity-item">
-                    <div class="activity-icon"><i class="fas fa-shield-alt"></i></div>
-                    <div class="activity-content">
-                        <div>Unité Alpha créée</div>
-                        <div class="activity-time">1 heure</div>
-                    </div>
-                </li>
+        <!-- Section Progression des Recrues -->
+        <div class="dashboard-section" id="recruit-progress">
+            <h2><i class="fas fa-graduation-cap"></i> Progression des Recrues</h2>
+            
+            <!-- Statistiques de progression -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-user-plus"></i></div>
+                    <div class="stat-value" id="total-recruits">0</div>
+                    <div class="stat-label">Recrues totales</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-book"></i></div>
+                    <div class="stat-value" id="recruits-initial">0</div>
+                    <div class="stat-label">Formation initiale</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-tools"></i></div>
+                    <div class="stat-value" id="recruits-specialization">0</div>
+                    <div class="stat-label">Spécialisation</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-users"></i></div>
+                    <div class="stat-value" id="recruits-integration">0</div>
+                    <div class="stat-label">Intégration unité</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-clipboard-check"></i></div>
+                    <div class="stat-value" id="recruits-evaluation">0</div>
+                    <div class="stat-label">Évaluation finale</div>
+                </div>
+            </div>
+            
+            <!-- Barre de progression globale -->
+            <div class="progression-overview">
+                <h3>Progression globale</h3>
+                <div class="progression-bar-container">
+                    <div class="progression-bar" id="recruits-progress-bar"></div>
+                </div>
+                <div class="progression-percentage">
+                    <span id="recruits-progress-percentage">0%</span> complété
+                </div>
+            </div>
+            
+            <!-- Promotions récentes -->
+            <h3>Promotions récentes</h3>
+            <ul class="activity-list" id="recent-promotions">
+                <li class="no-data">Aucune promotion récente</li>
             </ul>
         </div>
     </div>
@@ -402,6 +509,7 @@
     </footer>
 
     <script src="assets/js/soldierManager.js"></script>
+    <script src="assets/js/progressionManager.js"></script>
     <script src="assets/js/dashboardManager.js"></script>
 </body>
 </html>

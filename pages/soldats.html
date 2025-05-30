@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../assets/css/style.css"> <!-- Styles communs -->
     <link rel="stylesheet" href="../assets/css/soldats.css">
     <link rel="stylesheet" href="../assets/css/no-photos.css"> <!-- Masquer les éléments liés aux photos -->
+    <link rel="stylesheet" href="../assets/css/progression.css"> <!-- Styles pour la progression des recrues -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -73,6 +74,7 @@
                         <button class="tab-btn" data-tab="missions">Missions</button>
                         <button class="tab-btn" data-tab="sanctions">Sanctions</button>
                         <button class="tab-btn" data-tab="history">Historique</button>
+                        <button class="tab-btn hidden-tab" id="progression-tab-btn" data-tab="progression">Progression</button>
                     </div>
                     
                     <div class="soldier-file-tab-content">
@@ -81,7 +83,8 @@
                             <div class="soldier-file-grid">
                                 <div class="soldier-file-photo">
                                     <div id="photo-container" class="placeholder-photo">Photo</div>
-                                    <input type="file" id="photo-upload" accept="image/*" style="display: none;">
+                                    <label for="photo-upload" class="sr-only">Télécharger une photo</label>
+                                    <input type="file" id="photo-upload" accept="image/*" class="hidden-input" title="Télécharger une photo" aria-label="Télécharger une photo">
                                     <button class="edit-btn" id="edit-photo-btn" title="Modifier la photo"><i class="fas fa-edit"></i></button>
                                 </div>
                                 <div class="soldier-file-details">
@@ -169,6 +172,105 @@
                                 <button class="filter-btn" data-filter="statut">Statuts</button>
                                 <button class="filter-btn" data-filter="unite">Unités</button>
                             </div>
+                        </div>
+                        
+                        <!-- Onglet Progression des Recrues -->
+                        <div class="tab-pane" id="progression-tab">
+                            <h3>Progression de la Recrue</h3>
+                            <div class="progression-container">
+                                <div class="progression-track">
+                                    <div class="progression-step" id="step-formation-initiale">
+                                        <div class="step-indicator">
+                                            <div class="step-number">1</div>
+                                            <div class="step-line"></div>
+                                        </div>
+                                        <div class="step-content">
+                                            <h4>Formation Initiale</h4>
+                                            <div class="step-details">
+                                                <p><strong>Statut:</strong> <span id="formation-initiale-status">Non commencé</span></p>
+                                                <p><strong>Date de début:</strong> <span id="formation-initiale-debut">-</span></p>
+                                                <p><strong>Date de fin:</strong> <span id="formation-initiale-fin">-</span></p>
+                                                <p><strong>Note:</strong> <span id="formation-initiale-note">-</span></p>
+                                            </div>
+                                            <div class="step-actions">
+                                                <button class="action-btn" id="btn-complete-formation-initiale">Marquer comme terminé</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="progression-step" id="step-specialisation">
+                                        <div class="step-indicator">
+                                            <div class="step-number">2</div>
+                                            <div class="step-line"></div>
+                                        </div>
+                                        <div class="step-content">
+                                            <h4>Spécialisation</h4>
+                                            <div class="step-details">
+                                                <p><strong>Statut:</strong> <span id="specialisation-status">Non commencé</span></p>
+                                                <p><strong>Date de début:</strong> <span id="specialisation-debut">-</span></p>
+                                                <p><strong>Date de fin:</strong> <span id="specialisation-fin">-</span></p>
+                                                <p><strong>Spécialité:</strong> <span id="specialisation-type">-</span></p>
+                                                <p><strong>Note:</strong> <span id="specialisation-note">-</span></p>
+                                            </div>
+                                            <div class="step-actions">
+                                                <button class="action-btn" id="btn-start-specialisation">Démarrer</button>
+                                                <button class="action-btn" id="btn-complete-specialisation">Terminer</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="progression-step" id="step-integration">
+                                        <div class="step-indicator">
+                                            <div class="step-number">3</div>
+                                            <div class="step-line"></div>
+                                        </div>
+                                        <div class="step-content">
+                                            <h4>Intégration à l'Unité</h4>
+                                            <div class="step-details">
+                                                <p><strong>Statut:</strong> <span id="integration-status">Non commencé</span></p>
+                                                <p><strong>Date de début:</strong> <span id="integration-debut">-</span></p>
+                                                <p><strong>Date de fin:</strong> <span id="integration-fin">-</span></p>
+                                                <p><strong>Unité:</strong> <span id="integration-unite">-</span></p>
+                                                <p><strong>Note:</strong> <span id="integration-note">-</span></p>
+                                            </div>
+                                            <div class="step-actions">
+                                                <button class="action-btn" id="btn-start-integration">Démarrer</button>
+                                                <button class="action-btn" id="btn-complete-integration">Terminer</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="progression-step" id="step-evaluation">
+                                        <div class="step-indicator">
+                                            <div class="step-number">4</div>
+                                        </div>
+                                        <div class="step-content">
+                                            <h4>Évaluation Finale</h4>
+                                            <div class="step-details">
+                                                <p><strong>Statut:</strong> <span id="evaluation-status">Non commencé</span></p>
+                                                <p><strong>Date:</strong> <span id="evaluation-date">-</span></p>
+                                                <p><strong>Résultat:</strong> <span id="evaluation-resultat">-</span></p>
+                                                <p><strong>Note:</strong> <span id="evaluation-note">-</span></p>
+                                            </div>
+                                            <div class="step-actions">
+                                                <button class="action-btn" id="btn-start-evaluation">Démarrer l'évaluation</button>
+                                                <button class="action-btn success-btn" id="btn-pass-evaluation">Réussite</button>
+                                                <button class="action-btn danger-btn" id="btn-fail-evaluation">Échec</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="progression-overview">
+                                    <div class="progression-bar-container">
+                                        <div class="progression-bar" id="progression-bar-fill"></div>
+                                    </div>
+                                    <div class="progression-percentage">
+                                        <span id="progression-percentage-value">0%</span> completé
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                             <div class="history-list">
                                 <p class="placeholder-text" id="history-placeholder">Aucun changement enregistré pour ce soldat.</p>
                                 <ul id="history-list" class="timeline-list">
@@ -252,5 +354,6 @@
     <script src="../assets/js/soldierManager.js"></script>
     <script src="../assets/js/soldierPhotoManager.js"></script>
     <script src="../assets/js/dataManager.js"></script>
+    <script src="../assets/js/progressionManager.js"></script>
 </body>
 </html>
