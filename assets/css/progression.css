@@ -17,9 +17,23 @@
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+.progression-modules-list {
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 15px;
+}
+
 .progression-track {
     position: relative;
     margin-bottom: 30px;
+}
+
+.progression-module-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 15px;
 }
 
 .progression-step {
@@ -85,6 +99,34 @@
     color: #ffbf00;
     font-size: 1.1rem;
     margin-bottom: 15px;
+}
+
+.module-card {
+    flex: 0 0 calc(33.333% - 10px);
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 180px;
+}
+
+.module-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.module-card.validated {
+    border-color: #28a745;
+    background-color: #f0fff4;
+}
+
+.module-card.not-validated {
+    border-color: #ffc107;
+    background-color: #fffbf0;
 }
 
 .step-details {

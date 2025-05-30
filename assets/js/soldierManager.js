@@ -1504,25 +1504,34 @@ document.addEventListener('DOMContentLoaded', () => {
             displaySoldiers(allSoldiersData);
         };
     }
-
-if (openCreateBtn) {
-    openCreateBtn.addEventListener('click', showCreationCard);
-}
-
-// Appel initial pour charger les données
-if (soldierListDiv) {
-    fetchSoldiers();
-    // Vérifier les paramètres d'URL pour appliquer les filtres automatiquement
-    checkUrlParams();
-} else {
-    console.warn("Élément #soldierList non trouvé. Le chargement des soldats est annulé. Assurez-vous d'être sur la page soldats.html.");
-}
-
-if (soldierListDiv) {
-    fetchSoldiers();
-    // Vérifier les paramètres d'URL pour appliquer les filtres automatiquement
-    checkUrlParams();
-} else {
-    console.warn("Elément #soldierList non trouvé. Le chargement des soldats est annulé. Assurez-vous d'être sur la page soldats.html.");
-}
+    
+    // Fonction pour configurer le bouton de fermeture du dossier
+    function setupCloseDossierButton() {
+        const btnCloseDossier = document.getElementById('btn-close-dossier');
+        if (btnCloseDossier) {
+            btnCloseDossier.addEventListener('click', () => {
+                // Fermer le dossier
+                document.getElementById('soldierFileModal').classList.add('hidden-modal');
+            });
+        }
+    }
+    
+    // Configurer les écouteurs d'événements
+    function setupEventListeners() {
+        if (openCreateBtn) {
+            openCreateBtn.addEventListener('click', showCreationCard);
+        }
+    }
+    
+    // Initialisation
+    if (soldierListDiv) {
+        fetchSoldiers();
+        // Vérifier les paramètres d'URL pour appliquer les filtres automatiquement
+        checkUrlParams();
+        // Configurer le bouton de fermeture du dossier
+        setupCloseDossierButton();
+        setupEventListeners();
+    } else {
+        console.warn("Elément #soldierList non trouvé. Le chargement des soldats est annulé. Assurez-vous d'être sur la page soldats.html.");
+    }
 });

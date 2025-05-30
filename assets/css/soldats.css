@@ -4,6 +4,14 @@
     display: none !important;
 }
 
+.hidden-input {
+    display: none !important;
+}
+
+.hidden-element {
+    display: none !important;
+}
+
 #openCreateSoldierModal {
     display: flex;
     align-items: center;

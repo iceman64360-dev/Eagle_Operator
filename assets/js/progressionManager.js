@@ -100,25 +100,27 @@ function updateProgressionDisplay(soldier) {
     const modulesList = document.getElementById('modules-list');
     if (progression.modules && progression.modules.liste && progression.modules.liste.length > 0) {
         // Compter les modules complétés
-        const completedModules = progression.modules.liste.filter(module => module.complete).length;
+        const completedModules = progression.modules.liste.filter(m => m.complete).length;
         document.getElementById('modules-completed').textContent = `${completedModules}/${progression.modules.liste.length}`;
         
-        // Afficher la liste des modules
+        // Afficher la liste des modules sous forme de cartes
         modulesList.innerHTML = '';
+        modulesList.className = 'progression-modules-list'; // Appliquer la classe pour l'affichage en colonnes
+        
         progression.modules.liste.forEach(module => {
-            const moduleItem = document.createElement('div');
-            moduleItem.className = 'module-item';
+            const moduleCard = document.createElement('div');
+            moduleCard.className = `module-card ${module.complete ? 'validated' : 'not-validated'}`;
             
             // Date de validation (si complété)
             const dateValidation = module.complete && module.date_fin ? 
-                `<span class="module-date">Validé le ${module.date_fin}</span>` : '';
+                `<div class="module-date">Validé le ${module.date_fin}</div>` : '';
             
-            moduleItem.innerHTML = `
+            moduleCard.innerHTML = `
                 <div class="module-header">
-                    <span class="module-name">${module.nom}</span>
-                    <span class="module-status ${module.complete ? 'complete' : 'pending'}">
+                    <h4 class="module-name">${module.nom}</h4>
+                    <div class="module-status ${module.complete ? 'complete' : 'pending'}">
                         ${module.complete ? 'Validé' : 'Non validé'}
-                    </span>
+                    </div>
                 </div>
                 ${dateValidation}
                 <div class="module-actions">
@@ -128,7 +130,7 @@ function updateProgressionDisplay(soldier) {
                     }
                 </div>
             `;
-            modulesList.appendChild(moduleItem);
+            modulesList.appendChild(moduleCard);
         });
         
         // Ajouter les écouteurs d'événements pour les boutons de complétion de module
@@ -300,23 +302,121 @@ function setupProgressionButtons(soldier) {
     });
     
     // Intégration à l'Unité
-    const btnStartIntegration = document.getElementById('btn-start-integration');
-    if (btnStartIntegration) {
-        btnStartIntegration.onclick = () => {
-            progression.integration_unite.date_debut = new Date().toISOString().split('T')[0];
-            progression.integration_unite.unite = soldier.unité || prompt('Unité d\'affectation:', 'Alpha 1-1');
-            saveSoldiersToStorage();
-            updateProgressionDisplay(soldier);
+    const btnShowIntegrationForm = document.getElementById('btn-show-integration-form');
+    const integrationForm = document.getElementById('integration-form');
+    const btnCompleteIntegration = document.getElementById('btn-complete-integration');
+    const btnCancelIntegration = document.getElementById('btn-cancel-integration');
+    const selectUnite = document.getElementById('select-unite');
+    
+    // Charger les unités disponibles
+    function loadAvailableUnits() {
+        // Vider le sélecteur d'unités
+        selectUnite.innerHTML = '<option value="">-- Sélectionner une escouade --</option>';
+        
+        // Charger les unités depuis le localStorage ou le fichier JSON
+        let units = [];
+        const unitsData = localStorage.getItem('eagleOperator_units');
+        if (unitsData) {
+            units = JSON.parse(unitsData);
+        } else {
+            // Charger depuis le fichier JSON si nécessaire
+            fetch('data/unites.json')
+                .then(response => response.json())
+                .then(data => {
+                    units = data;
+                    populateUnitSelect(units);
+                });
+        }
+        
+        if (units.length > 0) {
+            populateUnitSelect(units);
+        }
+    }
+    
+    // Peupler le sélecteur d'unités avec les unités disponibles
+    function populateUnitSelect(units) {
+        // Calculer les effectifs actuels de chaque unité
+        const effectifs = {};
+        allSoldiersData.forEach(s => {
+            if (s.unité && s.statut === 'Actif') {
+                effectifs[s.unité] = (effectifs[s.unité] || 0) + 1;
+            }
+        });
+        
+        // Ajouter uniquement les unités qui ont de la place
+        units.forEach(unit => {
+            const effectifActuel = effectifs[unit.id] || 0;
+            if (effectifActuel < unit.effectif_max) {
+                const option = document.createElement('option');
+                option.value = unit.id;
+                option.textContent = `${unit.nom} (${effectifActuel}/${unit.effectif_max})`;
+                selectUnite.appendChild(option);
+            }
+        });
+    }
+    
+    // Afficher le formulaire d'intégration
+    if (btnShowIntegrationForm) {
+        btnShowIntegrationForm.onclick = () => {
+            // Afficher le formulaire
+            integrationForm.classList.remove('hidden-element');
+            btnShowIntegrationForm.classList.add('hidden-element');
+            btnCompleteIntegration.classList.remove('hidden-element');
+            btnCancelIntegration.classList.remove('hidden-element');
+            
+            // Charger les unités disponibles
+            loadAvailableUnits();
         };
     }
     
-    const btnCompleteIntegration = document.getElementById('btn-complete-integration');
+    // Annuler l'intégration
+    if (btnCancelIntegration) {
+        btnCancelIntegration.onclick = () => {
+            // Cacher le formulaire
+            integrationForm.classList.add('hidden-element');
+            btnShowIntegrationForm.classList.remove('hidden-element');
+            btnCompleteIntegration.classList.add('hidden-element');
+            btnCancelIntegration.classList.add('hidden-element');
+        };
+    }
+    
+    // Confirmer l'intégration
     if (btnCompleteIntegration) {
         btnCompleteIntegration.onclick = () => {
+            const selectedUnit = selectUnite.value;
+            const notes = document.getElementById('integration-notes').value;
+            
+            if (!selectedUnit) {
+                alert('Veuillez sélectionner une escouade pour l\'intégration.');
+                return;
+            }
+            
+            // Mettre à jour la progression
             progression.integration_unite.complete = true;
-            progression.integration_unite.date_fin = new Date().toISOString().split('T')[0];
+            progression.integration_unite.date_debut = new Date().toISOString().split('T')[0];
+            progression.integration_unite.unite = selectedUnit;
+            progression.integration_unite.note = notes;
+            
+            // Mettre à jour le soldat
+            soldier.unité = selectedUnit;
+            soldier.statut = 'Actif';
+            soldier.grade = 'Soldat';
+            
+            // Ajouter un événement dans l'historique
+            if (!soldier.historique) soldier.historique = [];
+            soldier.historique.push({
+                date: new Date().toISOString().split('T')[0],
+                type: 'promotion',
+                description: `Promotion au grade de Soldat et intégration à l'unité ${selectedUnit}`
+            });
+            
+            // Sauvegarder les changements
             saveSoldiersToStorage();
-            updateProgressionDisplay(soldier);
+            
+            // Fermer le dossier et rafraîchir la page
+            alert('Le soldat a été intégré avec succès à l\'unité ' + selectedUnit);
+            document.getElementById('soldierFileModal').classList.add('hidden-modal');
+            location.reload();
         };
     }
     

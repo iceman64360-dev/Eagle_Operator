@@ -66,6 +66,7 @@
         <div id="soldierFileModal" class="modal-bg hidden-modal">
             <div class="modal military-modal soldier-file-modal">
                 <h2>Dossier du Soldat <span id="soldierFileTitle"></span></h2>
+                <button class="close-dossier-btn" id="btn-close-dossier">Fermer le dossier</button>
                 <div class="soldier-file-content">
                     <div class="soldier-file-tabs">
                         <button class="tab-btn active" data-tab="identity">Identité</button>
@@ -172,6 +173,12 @@
                                 <button class="filter-btn" data-filter="statut">Statuts</button>
                                 <button class="filter-btn" data-filter="unite">Unités</button>
                             </div>
+                            <div class="history-list">
+                                <p class="placeholder-text" id="history-placeholder">Aucun changement enregistré pour ce soldat.</p>
+                                <ul id="history-list" class="timeline-list">
+                                    <!-- L'historique sera ajouté ici dynamiquement -->
+                                </ul>
+                            </div>
                         </div>
                         
                         <!-- Onglet Progression des Recrues -->
@@ -222,40 +229,32 @@
                                     <div class="progression-step" id="step-integration">
                                         <div class="step-indicator">
                                             <div class="step-number">3</div>
-                                            <div class="step-line"></div>
                                         </div>
                                         <div class="step-content">
                                             <h4>Intégration à l'Unité</h4>
                                             <div class="step-details">
                                                 <p><strong>Statut:</strong> <span id="integration-status">Non commencé</span></p>
-                                                <p><strong>Date de début:</strong> <span id="integration-debut">-</span></p>
-                                                <p><strong>Date de fin:</strong> <span id="integration-fin">-</span></p>
-                                                <p><strong>Unité:</strong> <span id="integration-unite">-</span></p>
-                                                <p><strong>Note:</strong> <span id="integration-note">-</span></p>
+                                                <p><strong>Date d'intégration:</strong> <span id="integration-debut">-</span></p>
+                                                <p><strong>Unité assignée:</strong> <span id="integration-unite">-</span></p>
+                                            </div>
+                                            <div id="integration-form" class="integration-form hidden-element">
+                                                <h5>Choisir une escouade pour l'intégration</h5>
+                                                <div class="form-group">
+                                                    <label for="select-unite">Escouade disponible:</label>
+                                                    <select id="select-unite" class="form-control">
+                                                        <option value="">-- Sélectionner une escouade --</option>
+                                                        <!-- Les escouades seront ajoutées dynamiquement -->
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="integration-notes">Notes d'intégration:</label>
+                                                    <textarea id="integration-notes" class="form-control" rows="2"></textarea>
+                                                </div>
                                             </div>
                                             <div class="step-actions">
-                                                <button class="action-btn" id="btn-start-integration">Démarrer</button>
-                                                <button class="action-btn" id="btn-complete-integration">Terminer</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="progression-step" id="step-evaluation">
-                                        <div class="step-indicator">
-                                            <div class="step-number">4</div>
-                                        </div>
-                                        <div class="step-content">
-                                            <h4>Évaluation Finale</h4>
-                                            <div class="step-details">
-                                                <p><strong>Statut:</strong> <span id="evaluation-status">Non commencé</span></p>
-                                                <p><strong>Date:</strong> <span id="evaluation-date">-</span></p>
-                                                <p><strong>Résultat:</strong> <span id="evaluation-resultat">-</span></p>
-                                                <p><strong>Note:</strong> <span id="evaluation-note">-</span></p>
-                                            </div>
-                                            <div class="step-actions">
-                                                <button class="action-btn" id="btn-start-evaluation">Démarrer l'évaluation</button>
-                                                <button class="action-btn success-btn" id="btn-pass-evaluation">Réussite</button>
-                                                <button class="action-btn danger-btn" id="btn-fail-evaluation">Échec</button>
+                                                <button class="action-btn" id="btn-show-integration-form">Intégrer à une unité</button>
+                                                <button class="action-btn hidden-element" id="btn-complete-integration">Confirmer l'intégration</button>
+                                                <button class="action-btn hidden-element" id="btn-cancel-integration">Annuler</button>
                                             </div>
                                         </div>
                                     </div>
