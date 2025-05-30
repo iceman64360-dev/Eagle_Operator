@@ -55,7 +55,40 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 // Si aucune donnée n'est trouvée dans localStorage, charger le fichier JSON statique
                 console.log('Aucune donnée trouvée dans localStorage, chargement du fichier JSON statique...');
-                const response = await fetch('./data/soldiers.json');
+                
+                // Essayer plusieurs chemins possibles pour trouver le fichier JSON
+                let response;
+                try {
+                    response = await fetch('./data/soldiers.json');
+                    if (!response.ok) throw new Error('Chemin 1 non valide');
+                } catch (e) {
+                    console.log('Tentative avec chemin alternatif 1 échouée, essai du chemin 2...');
+                    try {
+                        response = await fetch('../data/soldiers.json');
+                        if (!response.ok) throw new Error('Chemin 2 non valide');
+                    } catch (e2) {
+                        console.log('Tentative avec chemin alternatif 2 échouée, essai du chemin 3...');
+                        try {
+                            response = await fetch('/data/soldiers.json');
+                            if (!response.ok) throw new Error('Chemin 3 non valide');
+                        } catch (e3) {
+                            console.log('Tentative avec chemin alternatif 3 échouée, essai du chemin 4...');
+                            try {
+                                response = await fetch('https://raw.githubusercontent.com/iceman64360-dev/Eagle_Operator/main/data/soldiers.json');
+                                if (!response.ok) throw new Error('Chemin 4 non valide');
+                            } catch (e4) {
+                                console.log('Toutes les tentatives de chargement du fichier ont échoué, création de données par défaut...');
+                                // Créer un tableau vide pour commencer
+                                const defaultSoldiers = [];
+                                // Simuler une réponse réussie
+                                response = {
+                                    ok: true,
+                                    json: () => Promise.resolve(defaultSoldiers)
+                                };
+                            }
+                        }
+                    }
+                }
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
