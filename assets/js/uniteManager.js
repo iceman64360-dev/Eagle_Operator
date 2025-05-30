@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Fonction pour recharger les données des soldats depuis le localStorage
     function reloadSoldiersData() {
-        const localData = localStorage.getItem('eagle_soldiers');
+        const localData = localStorage.getItem('eagleOperator_soldiers');
         if (localData) {
             try {
                 allSoldiers = JSON.parse(localData);
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Promise.all([
         // Chargement des unités (localStorage en priorité, sinon JSON)
         (async () => {
-            const localUnits = localStorage.getItem('eagle_units');
+            const localUnits = localStorage.getItem('eagleOperator_units');
             if (localUnits) {
                 try { 
                     console.log('Unités chargées depuis localStorage');
@@ -48,14 +48,49 @@ document.addEventListener('DOMContentLoaded', () => {
             return res.json();
         })(),
         (async () => {
-            const local = localStorage.getItem('eagle_soldiers');
+            const local = localStorage.getItem('eagleOperator_soldiers');
             if (local) {
-                try { return JSON.parse(local); } catch(e) { /* fallback below */ }
+                try { 
+                    console.log('Soldats chargés depuis localStorage');
+                    return JSON.parse(local); 
+                } catch(e) { 
+                    console.warn('Erreur parsing soldats depuis localStorage:', e);
+                    /* fallback below */ 
+                }
             }
-            const res = await fetch('../data/soldiers.json');
-            if (!res.ok) throw new Error(`HTTP error! status: ${res.status} for soldiers.json`);
+            
+            // Essayer plusieurs chemins possibles pour trouver le fichier JSON
+            let res;
+            try {
+                res = await fetch('./data/soldiers.json');
+                if (!res.ok) throw new Error('Chemin 1 non valide');
+            } catch (e) {
+                console.log('Tentative avec chemin alternatif 1 échouée, essai du chemin 2...');
+                try {
+                    res = await fetch('../data/soldiers.json');
+                    if (!res.ok) throw new Error('Chemin 2 non valide');
+                } catch (e2) {
+                    console.log('Tentative avec chemin alternatif 2 échouée, essai du chemin 3...');
+                    try {
+                        res = await fetch('/data/soldiers.json');
+                        if (!res.ok) throw new Error('Chemin 3 non valide');
+                    } catch (e3) {
+                        console.log('Tentative avec chemin alternatif 3 échouée, essai du chemin 4...');
+                        try {
+                            res = await fetch('https://raw.githubusercontent.com/iceman64360-dev/Eagle_Operator/main/data/soldiers.json');
+                            if (!res.ok) throw new Error('Chemin 4 non valide');
+                        } catch (e4) {
+                            console.log('Toutes les tentatives de chargement du fichier ont échoué, création de données par défaut...');
+                            // Retourner un tableau vide en cas d'échec
+                            return [];
+                        }
+                    }
+                }
+            }
+            
             return res.json();
         })()
+
     ])
     .then(([unitsData, soldiersData]) => {
         if (unitsData && unitsData.length > 0) {
@@ -104,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Sauvegarde des unités dans le localStorage
     function saveUnitsToStorage() {
-        localStorage.setItem('eagle_units', JSON.stringify(allUnits));
+        localStorage.setItem('eagleOperator_units', JSON.stringify(allUnits));
     }
     
     // Fonction pour construire le chemin hiérarchique vers une unité
@@ -139,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Si on retire l'affectation, on vide le champ unité
             soldier.unité = isRemove ? "" : uniteName;
             // Sauvegarder les modifications des soldats
-            localStorage.setItem('eagle_soldiers', JSON.stringify(allSoldiers));
+            localStorage.setItem('eagleOperator_soldiers', JSON.stringify(allSoldiers));
             return true;
         }
         return false;
