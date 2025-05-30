@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Si le soldat a une unité mais pas de rôle spécifique, chercher l'ID de l'unité par son nom
             if (!unitId && soldier.unité && soldier.unité.trim() !== 'N/A' && soldier.unité.trim() !== '') {
                 // Rechercher l'unité par son nom
-                const unitsData = JSON.parse(localStorage.getItem('eagle_units') || '[]');
+                const unitsData = JSON.parse(localStorage.getItem('eagleOperator_units') || '[]');
                 const matchingUnit = unitsData.find(u => u.nom === soldier.unité);
                 if (matchingUnit) {
                     unitId = matchingUnit.id_unite;

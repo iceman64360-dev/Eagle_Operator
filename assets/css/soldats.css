@@ -933,6 +933,14 @@
     z-index: 1;
 }
 
+/* S'assurer que la photo reste bien positionnée pour les recrues */
+.soldier-card.recrue .soldier-card-photo {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+}
+
 /* Bordures colorées selon le grade */
 .soldier-card.grade-Soldat {
     border-left: 4px solid #95a5a6; /* Gris */
