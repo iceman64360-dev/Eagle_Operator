@@ -24,7 +24,7 @@ function initDashboard() {
 // Récupérer les données des soldats depuis le localStorage
 function getSoldiersData() {
     try {
-        const storedData = localStorage.getItem('eagle_soldiers');
+        const storedData = localStorage.getItem('eagleOperator_soldiers');
         if (storedData) {
             return JSON.parse(storedData);
         }
@@ -37,7 +37,7 @@ function getSoldiersData() {
 // Récupérer les données des unités depuis le localStorage
 function getUnitsData() {
     try {
-        const storedData = localStorage.getItem('eagle_units');
+        const storedData = localStorage.getItem('eagleOperator_units');
         if (storedData) {
             return JSON.parse(storedData);
         }
