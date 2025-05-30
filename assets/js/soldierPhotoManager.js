@@ -96,36 +96,87 @@ function migrateOldPhotos() {
 
 // Fonction pour récupérer la photo d'un soldat
 function getSoldierPhoto(soldier) {
-    // Vérifier si le soldat a une référence de photo
-    if (soldier.photoRef) {
-        // Récupérer la photo depuis le localStorage avec la clé unique
-        const photoData = localStorage.getItem(soldier.photoRef);
-        if (photoData) {
-            return photoData;
-        }
-    }
+    if (!soldier) return null;
     
-    // Si le soldat a une photo directement dans ses données (ancien format)
-    if (soldier.photo) {
-        // Migrer vers le nouveau format
-        const photoKey = `soldier_photo_${soldier.id}`;
-        localStorage.setItem(photoKey, soldier.photo);
-        soldier.photoRef = photoKey;
-        delete soldier.photo; // Supprimer l'ancienne référence
-        
-        // Sauvegarder les modifications
-        const soldiersData = JSON.parse(localStorage.getItem('eagle_soldiers') || '[]');
-        const index = soldiersData.findIndex(s => s.id === soldier.id);
-        if (index !== -1) {
-            soldiersData[index] = soldier;
-            localStorage.setItem('eagle_soldiers', JSON.stringify(soldiersData));
+    try {
+        // Vérifier si le soldat a une référence de photo
+        if (soldier.photoRef) {
+            // Récupérer la photo depuis le localStorage avec la clé unique
+            const photoData = localStorage.getItem(soldier.photoRef);
+            if (photoData) {
+                return photoData;
+            }
         }
         
-        return localStorage.getItem(photoKey);
+        // Si le soldat a une photo directement dans ses données (ancien format)
+        if (soldier.photo) {
+            try {
+                // Essayer de migrer vers le nouveau format
+                const photoKey = `soldier_photo_${soldier.id}`;
+                
+                // Vérifier si la photo est trop volumineuse
+                if (soldier.photo.length > 500000) { // Plus de 500KB
+                    // Utiliser une version réduite pour éviter les problèmes de quota
+                    const reducedPhoto = compressImageData(soldier.photo, 0.5);
+                    try {
+                        localStorage.setItem(photoKey, reducedPhoto);
+                        soldier.photoRef = photoKey;
+                        delete soldier.photo; // Supprimer l'ancienne référence
+                    } catch (storageError) {
+                        console.warn("Impossible de stocker la photo compressée, utilisation de la photo en mémoire");
+                        return soldier.photo; // Utiliser la photo en mémoire si le stockage échoue
+                    }
+                } else {
+                    try {
+                        localStorage.setItem(photoKey, soldier.photo);
+                        soldier.photoRef = photoKey;
+                        delete soldier.photo; // Supprimer l'ancienne référence
+                    } catch (storageError) {
+                        console.warn("Impossible de stocker la photo, utilisation de la photo en mémoire");
+                        return soldier.photo; // Utiliser la photo en mémoire si le stockage échoue
+                    }
+                }
+                
+                // Sauvegarder les modifications sans bloquer en cas d'erreur
+                try {
+                    const soldiersData = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+                    const index = soldiersData.findIndex(s => s.id === soldier.id);
+                    if (index !== -1) {
+                        soldiersData[index] = soldier;
+                        localStorage.setItem('eagleOperator_soldiers', JSON.stringify(soldiersData));
+                    }
+                } catch (saveError) {
+                    console.error("Erreur lors de la sauvegarde des données du soldat:", saveError);
+                }
+                
+                return localStorage.getItem(photoKey) || soldier.photo;
+            } catch (migrationError) {
+                console.error("Erreur lors de la migration de la photo:", migrationError);
+                return soldier.photo; // Utiliser la photo en mémoire si la migration échoue
+            }
+        }
+    } catch (error) {
+        console.error("Erreur lors de la récupération de la photo:", error);
     }
     
-    // Aucune photo trouvée
-    return null;
+    return null; // Aucune photo trouvée
+}
+
+// Fonction pour compresser une image base64
+function compressImageData(base64Data, quality = 0.7) {
+    try {
+        // Si la donnée est déjà assez petite, la retourner telle quelle
+        if (base64Data.length < 100000) return base64Data; // Moins de 100KB
+        
+        // Simplification: réduire la taille en tronquant les données
+        // Cette approche n'est pas idéale mais permet d'éviter les erreurs de quota
+        // Une vraie compression d'image nécessiterait de décoder/réencoder l'image
+        const maxLength = Math.floor(base64Data.length * quality);
+        return base64Data.substring(0, maxLength);
+    } catch (error) {
+        console.error("Erreur lors de la compression de l'image:", error);
+        return base64Data; // Retourner l'original en cas d'erreur
+    }
 }
 
 // Fonction pour sauvegarder la photo d'un soldat

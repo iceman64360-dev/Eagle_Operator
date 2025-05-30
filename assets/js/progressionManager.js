@@ -149,22 +149,33 @@ function updateProgressionDisplay(soldier) {
     
     // Intégration à l'Unité
     const stepIntegration = document.getElementById('step-integration');
-    updateStepStatus(stepIntegration, progression.integration_unite);
-    document.getElementById('integration-status').textContent = getStatusText(progression.integration_unite);
-    document.getElementById('integration-debut').textContent = progression.integration_unite.date_debut || '-';
-    document.getElementById('integration-fin').textContent = progression.integration_unite.date_fin || '-';
-    document.getElementById('integration-unite').textContent = progression.integration_unite.unite || soldier.unité || '-';
-    document.getElementById('integration-note').textContent = progression.integration_unite.note || '-';
+    if (stepIntegration) {
+        updateStepStatus(stepIntegration, progression.integration_unite);
+    }
+    
+    // Vérifier l'existence de chaque élément avant d'y accéder
+    const integrationStatus = document.getElementById('integration-status');
+    if (integrationStatus) {
+        integrationStatus.textContent = getStatusText(progression.integration_unite);
+    }
+    
+    const integrationDebut = document.getElementById('integration-debut');
+    if (integrationDebut) {
+        integrationDebut.textContent = progression.integration_unite.date_debut || '-';
+    }
+    
+    const integrationUnite = document.getElementById('integration-unite');
+    if (integrationUnite) {
+        integrationUnite.textContent = progression.integration_unite.unite || soldier.unité || '-';
+    }
+    
     if (progression.integration_unite.complete) completedSteps++;
     
-    // Évaluation Finale
-    const stepEvaluation = document.getElementById('step-evaluation');
-    updateStepStatus(stepEvaluation, progression.evaluation_finale);
-    document.getElementById('evaluation-status').textContent = getStatusText(progression.evaluation_finale);
-    document.getElementById('evaluation-date').textContent = progression.evaluation_finale.date || '-';
-    document.getElementById('evaluation-resultat').textContent = progression.evaluation_finale.resultat || '-';
-    document.getElementById('evaluation-note').textContent = progression.evaluation_finale.note || '-';
-    if (progression.evaluation_finale.complete) completedSteps++;
+    // L'évaluation finale a été supprimée, mais nous gardons la structure dans les données pour la compatibilité
+    // Nous n'accédons plus aux éléments du DOM qui ont été supprimés
+    if (progression.evaluation_finale && progression.evaluation_finale.complete) {
+        completedSteps++;
+    }
     
     // Mettre à jour la barre de progression
     const progressPercentage = Math.round((completedSteps / totalSteps) * 100);
