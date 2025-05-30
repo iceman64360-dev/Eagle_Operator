@@ -12,6 +12,44 @@
     display: none !important;
 }
 
+.modal-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2c3e50;
+}
+
+.modal-header-container h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 22px;
+}
+
+.close-dossier-btn {
+    background-color: #3a6080;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.close-dossier-btn:hover {
+    background-color: #2c3e50;
+}
+
+.close-dossier-btn::before {
+    content: '\2715';
+    margin-right: 6px;
+    font-size: 12px;
+}
+
 #openCreateSoldierModal {
     display: flex;
     align-items: center;
