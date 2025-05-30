@@ -541,6 +541,17 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.unit-group {
+    background-color: #16a085; /* Turquoise pour Groupe */
+    color: #ffffff;
+}
+
+.unit-group:hover {
+    background-color: #1abc9c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
 .unit-default {
     background-color: #7f8c8d; /* Gris pour type inconnu */
     color: #ffffff;

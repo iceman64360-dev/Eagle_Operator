@@ -199,14 +199,16 @@ function updateUnitsTable(soldiersData, unitsData) {
         let unitTypeClass = 'unit-default';
         if (unit.type) {
             const type = unit.type.toLowerCase();
-            if (type.includes('quartier') || type.includes('qg')) {
+            if (type === 'quartier_general') {
                 unitTypeClass = 'unit-hq';
-            } else if (type.includes('compagnie')) {
+            } else if (type === 'compagnie') {
                 unitTypeClass = 'unit-company';
-            } else if (type.includes('section')) {
+            } else if (type === 'section') {
                 unitTypeClass = 'unit-section';
-            } else if (type.includes('escouade')) {
+            } else if (type === 'escouade') {
                 unitTypeClass = 'unit-squad';
+            } else if (type === 'groupe') {
+                unitTypeClass = 'unit-group';
             }
         }
         
