@@ -39,6 +39,14 @@ function updateProgressionDisplay(soldier) {
             complete: false,
             liste: []
         };
+        
+        // Ajouter les modules standard si la liste est vide
+        if (progression.modules.liste.length === 0) {
+            initializeStandardModules(progression);
+        }
+    } else if (progression.modules.liste && progression.modules.liste.length === 0) {
+        // Ajouter les modules standard si la liste existe mais est vide
+        initializeStandardModules(progression);
     }
     
     if (!progression.integration_unite) {
@@ -100,6 +108,26 @@ function updateProgressionDisplay(soldier) {
         progression.modules.liste.forEach(module => {
             const moduleItem = document.createElement('div');
             moduleItem.className = 'module-item';
+            
+            // Préparer le contenu du module s'il existe
+            let contenuHTML = '';
+            if (module.contenu && Array.isArray(module.contenu) && module.contenu.length > 0) {
+                contenuHTML = `
+                    <div class="module-content-list">
+                        <p><strong>Contenu:</strong></p>
+                        <ul>
+                            ${module.contenu.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            // Préparer le critère de réussite s'il existe
+            let critereHTML = '';
+            if (module.critere_reussite) {
+                critereHTML = `<p><strong>Critère de réussite:</strong> ${module.critere_reussite}</p>`;
+            }
+            
             moduleItem.innerHTML = `
                 <div class="module-header">
                     <span class="module-name">${module.nom}</span>
@@ -108,9 +136,12 @@ function updateProgressionDisplay(soldier) {
                     </span>
                 </div>
                 <div class="module-details">
+                    ${module.description ? `<p class="module-description">${module.description}</p>` : ''}
                     <p><strong>Date de début:</strong> ${module.date_debut || '-'}</p>
                     <p><strong>Date de fin:</strong> ${module.date_fin || '-'}</p>
                     <p><strong>Formateur:</strong> ${module.formateur || '-'}</p>
+                    ${critereHTML}
+                    ${contenuHTML}
                 </div>
                 <div class="module-actions">
                     ${!module.complete ? `<button class="action-btn btn-complete-module" data-module-id="${module.id}">Terminer</button>` : ''}
@@ -454,6 +485,62 @@ function calculateRecruitProgressStats(soldiersData) {
     });
     
     return stats;
+}
+
+// Fonction pour initialiser les modules de formation standard
+function initializeStandardModules(progression) {
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Module 1: MVT-BAS — Mouvements & Disposition de Combat
+    progression.modules.liste.push({
+        id: `module-mvt-bas-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        nom: "MVT-BAS — Mouvements & Disposition de Combat",
+        description: "Enseigner les déplacements tactiques individuels et en groupe.",
+        contenu: [
+            "Positionnement (couv', flancs, intervalles)",
+            "Progression par bonds",
+            "Arrêts de contact / réactions feu"
+        ],
+        critere_reussite: "Cohésion en progression + discipline radio",
+        date_debut: today,
+        date_fin: null,
+        formateur: "",
+        complete: false
+    });
+    
+    // Module 2: COM-RAD — Communication & Protocoles Radio
+    progression.modules.liste.push({
+        id: `module-com-rad-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        nom: "COM-RAD — Communication & Protocoles Radio",
+        description: "Appliquer les procédures standards de communication.",
+        contenu: [
+            "Lexique radio (Ex : 'Break', 'Over', 'Actual', 'SitRep')",
+            "Structure des ordres simples (FRAGO, contact, extraction)",
+            "Code couleur / brevity code"
+        ],
+        critere_reussite: "Transmissions claires, concises, conformes",
+        date_debut: today,
+        date_fin: null,
+        formateur: "",
+        complete: false
+    });
+    
+    // Module 3: IDENT-FEU — Identification & Engagement des Cibles
+    progression.modules.liste.push({
+        id: `module-ident-feu-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        nom: "IDENT-FEU — Identification & Engagement des Cibles",
+        description: "Former à la discrimination des cibles, ouverture du feu et coordination de tir.",
+        contenu: [
+            "Règles d'engagement",
+            "Cibles prioritaires / menaces immédiates",
+            "Tir contrôlé, sectorisé, appui mutuel"
+        ],
+        critere_reussite: "Tir précis, zéro fratricide, discipline feu",
+        date_debut: today,
+        date_fin: null,
+        formateur: "",
+        complete: false
+    });
 }
 
 // Charger les données des soldats au démarrage
