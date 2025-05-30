@@ -104,12 +104,22 @@ function updateProgressionDisplay(soldier) {
         const dateDebut = new Date(progression.formation_initiale.date_debut);
         const dateFinPrevue = new Date(dateDebut);
         dateFinPrevue.setDate(dateDebut.getDate() + 14); // +14 jours (2 semaines)
-        document.getElementById('formation-initiale-fin-prevue').textContent = dateFinPrevue.toISOString().split('T')[0];
+        
+        const finPrevueElement = document.getElementById('formation-initiale-fin-prevue');
+        if (finPrevueElement) {
+            finPrevueElement.textContent = dateFinPrevue.toISOString().split('T')[0];
+        }
     } else {
-        document.getElementById('formation-initiale-fin-prevue').textContent = '-';
+        const finPrevueElement = document.getElementById('formation-initiale-fin-prevue');
+        if (finPrevueElement) {
+            finPrevueElement.textContent = '-';
+        }
     }
     
-    document.getElementById('formation-initiale-note').textContent = progression.formation_initiale.note || '-';
+    const noteElement = document.getElementById('formation-initiale-note');
+    if (noteElement) {
+        noteElement.textContent = progression.formation_initiale.note || '-';
+    }
     if (progression.formation_initiale.complete) completedSteps++;
     
     // Modules de formation
