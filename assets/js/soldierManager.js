@@ -13,8 +13,30 @@ document.addEventListener('DOMContentLoaded', () => {
     function checkUrlParams() {
         const urlParams = new URLSearchParams(window.location.search);
         const statutParam = urlParams.get('statut');
+        const soldierIdParam = urlParams.get('id');
         
-        if (statutParam && statusFilter) {
+        // Si un ID de soldat est spécifié, ouvrir directement son dossier
+        if (soldierIdParam) {
+            const openSoldierDossier = () => {
+                if (allSoldiersData.length > 0) {
+                    const soldier = allSoldiersData.find(s => s.id === soldierIdParam);
+                    if (soldier) {
+                        // Ouvrir le dossier du soldat
+                        voirDossier(soldierIdParam);
+                    } else {
+                        console.warn(`Soldat avec ID ${soldierIdParam} non trouvé`);
+                    }
+                } else {
+                    // Si les données ne sont pas encore chargées, réessayer dans 100ms
+                    setTimeout(openSoldierDossier, 100);
+                }
+            };
+            
+            // Lancer la première tentative
+            setTimeout(openSoldierDossier, 300);
+        }
+        // Si un statut est spécifié, filtrer par ce statut
+        else if (statutParam && statusFilter) {
             // Définir le filtre de statut selon le paramètre URL
             statusFilter.value = statutParam;
             

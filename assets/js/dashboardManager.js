@@ -213,14 +213,14 @@ function updateUnitsTable(soldiersData, unitsData) {
         }
         
         // Créer les boutons pour les noms d'unités avec code couleur
-        const unitLink = `<a href="unites.html?unit=${unit.id_unite}" class="unit-button ${unitTypeClass}">${unit.nom}</a>`;
+        const unitLink = `<a href="pages/unites.html?unit=${unit.id_unite}" class="unit-button ${unitTypeClass}">${unit.nom}</a>`;
         
         // Créer le bouton pour le commandant s'il existe
         let commandantLink = '<span class="commander-empty">Non assigné</span>';
         if (unit.commandant_id) {
             const commandantSoldier = soldiersData.find(s => s.id === unit.commandant_id);
             if (commandantSoldier) {
-                commandantLink = `<a href="soldats.html?id=${commandantSoldier.id}" class="commander-button">${commandant}</a>`;
+                commandantLink = `<a href="pages/soldats.html?id=${commandantSoldier.id}" class="commander-button">${commandant}</a>`;
             }
         }
         
@@ -230,7 +230,7 @@ function updateUnitsTable(soldiersData, unitsData) {
             <td><span class="effectif-count">${effectifs}</span></td>
             <td><span class="badge ${statutClass}">${statut}</span></td>
             <td>
-                <a href="unites.html?unit=${unit.id_unite}" class="action-detail-button">Détail</a>
+                <a href="pages/unites.html?unit=${unit.id_unite}" class="action-detail-button">Détail</a>
             </td>
         `;
         
