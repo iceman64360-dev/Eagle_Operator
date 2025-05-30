@@ -322,46 +322,70 @@ function setupProgressionButtons(soldier) {
             if (unitsData) {
                 units = JSON.parse(unitsData);
 
-                // Ajouter toutes les escouades qui ont un chef
-                units.forEach(unit => {
-                    // Vérifier si l'unité a un chef
-                    const hasChef = allSoldiersData.some(s => 
-                        s.unité === unit.id && 
-                        s.statut === 'Actif' && 
-                        (s.grade === 'Sergent' || s.grade === 'Sergent-Chef' || s.grade === 'Caporal-Chef')
-                    );
+                // Calculer les effectifs actuels de chaque unité
+                const effectifs = {};
+                allSoldiersData.forEach(s => {
+                    if (s.unité && s.statut === 'Actif') {
+                        effectifs[s.unité] = (effectifs[s.unité] || 0) + 1;
+                    }
+                });
 
-                    if (hasChef) {
-                        const option = document.createElement('option');
-                        option.value = unit.id;
-                        option.textContent = unit.nom;
-                        selectEscouadeProvisoire.appendChild(option);
+                // Trouver les chefs d'escouade pour chaque unité
+                const chefsEscouade = {};
+                allSoldiersData.forEach(s => {
+                    if (s.unité && s.statut === 'Actif' && 
+                        (s.grade === 'Sergent' || s.grade === 'Sergent-Chef' || s.grade === 'Caporal-Chef')) {
+                        // Stocker le chef d'escouade (prendre le premier trouvé)
+                        if (!chefsEscouade[s.unité]) {
+                            chefsEscouade[s.unité] = s;
+                        }
+                    }
+                });
+
+                // Ajouter uniquement les escouades qui ont un chef et qui ne sont pas pleines
+                units.forEach(unit => {
+                    // Vérifier si c'est une escouade (type = 'escouade')
+                    if (unit.type === 'escouade') {
+                        const chef = chefsEscouade[unit.id];
+                        const effectifActuel = effectifs[unit.id] || 0;
+
+                        // Ajouter seulement si l'escouade a un chef et n'est pas pleine
+                        if (chef && effectifActuel < unit.effectif_max) {
+                            const option = document.createElement('option');
+                            option.value = unit.id;
+                            option.textContent = `${unit.nom} (${effectifActuel}/${unit.effectif_max})`;
+                            // Stocker l'ID du chef dans un attribut data
+                            option.dataset.chefId = chef.id;
+                            option.dataset.chefNom = `${chef.grade} ${chef.pseudo}`;
+                            selectEscouadeProvisoire.appendChild(option);
+                        }
                     }
                 });
             }
         }
     }
 
-    // Charger les parrains disponibles pour l'escouade sélectionnée
-    function loadAvailableParrains(escouadeId) {
-        if (selectParrain) {
-            selectParrain.innerHTML = '<option value="">-- Sélectionner un parrain --</option>';
+    // Mettre à jour automatiquement le parrain en fonction de l'escouade sélectionnée
+    function updateParrainAutomatique() {
+        if (selectEscouadeProvisoire && selectParrain) {
+            const selectedOption = selectEscouadeProvisoire.options[selectEscouadeProvisoire.selectedIndex];
 
-            if (!escouadeId) return;
-
-            // Trouver les soldats qui peuvent être parrains dans cette escouade
-            const parrains = allSoldiersData.filter(s => 
-                s.unité === escouadeId && 
-                s.statut === 'Actif' && 
-                (s.grade === 'Sergent' || s.grade === 'Sergent-Chef' || s.grade === 'Caporal-Chef')
-            );
-
-            parrains.forEach(parrain => {
+            if (selectedOption && selectedOption.dataset.chefId) {
+                // Créer une seule option avec le chef d'escouade
+                selectParrain.innerHTML = '';
                 const option = document.createElement('option');
-                option.value = parrain.id;
-                option.textContent = `${parrain.grade} ${parrain.pseudo}`;
+                option.value = selectedOption.dataset.chefId;
+                option.textContent = selectedOption.dataset.chefNom;
+                option.selected = true;
                 selectParrain.appendChild(option);
-            });
+
+                // Désactiver le sélecteur de parrain car il est automatique
+                selectParrain.disabled = true;
+            } else {
+                // Réinitialiser et désactiver le sélecteur de parrain si aucune escouade n'est sélectionnée
+                selectParrain.innerHTML = '<option value="">-- Sélection automatique --</option>';
+                selectParrain.disabled = true;
+            }
         }
     }
 
@@ -386,7 +410,7 @@ function setupProgressionButtons(soldier) {
             // Ajouter un écouteur d'événement pour le changement d'escouade
             if (selectEscouadeProvisoire) {
                 selectEscouadeProvisoire.addEventListener('change', () => {
-                    loadAvailableParrains(selectEscouadeProvisoire.value);
+                    updateParrainAutomatique();
                 });
             }
         };
@@ -410,13 +434,14 @@ function setupProgressionButtons(soldier) {
     // Confirmer l'incorporation
     if (btnCompleteIncorporation) {
         btnCompleteIncorporation.onclick = () => {
-            if (!selectEscouadeProvisoire || !selectParrain) return;
-
+            if (!selectEscouadeProvisoire) return;
+            
             const selectedEscouade = selectEscouadeProvisoire.value;
-            const selectedParrain = selectParrain.value;
-
+            const selectedOption = selectEscouadeProvisoire.options[selectEscouadeProvisoire.selectedIndex];
+            const selectedParrain = selectedOption.dataset.chefId;
+            
             if (!selectedEscouade || !selectedParrain) {
-                alert('Veuillez sélectionner une escouade et un parrain.');
+                alert('Veuillez sélectionner une escouade valide avec un chef.');
                 return;
             }
 
