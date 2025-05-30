@@ -109,42 +109,23 @@ function updateProgressionDisplay(soldier) {
             const moduleItem = document.createElement('div');
             moduleItem.className = 'module-item';
             
-            // Préparer le contenu du module s'il existe
-            let contenuHTML = '';
-            if (module.contenu && Array.isArray(module.contenu) && module.contenu.length > 0) {
-                contenuHTML = `
-                    <div class="module-content-list">
-                        <p><strong>Contenu:</strong></p>
-                        <ul>
-                            ${module.contenu.map(item => `<li>${item}</li>`).join('')}
-                        </ul>
-                    </div>
-                `;
-            }
-            
-            // Préparer le critère de réussite s'il existe
-            let critereHTML = '';
-            if (module.critere_reussite) {
-                critereHTML = `<p><strong>Critère de réussite:</strong> ${module.critere_reussite}</p>`;
-            }
+            // Date de validation (si complété)
+            const dateValidation = module.complete && module.date_fin ? 
+                `<span class="module-date">Validé le ${module.date_fin}</span>` : '';
             
             moduleItem.innerHTML = `
                 <div class="module-header">
                     <span class="module-name">${module.nom}</span>
                     <span class="module-status ${module.complete ? 'complete' : 'pending'}">
-                        ${module.complete ? 'Complété' : 'En cours'}
+                        ${module.complete ? 'Validé' : 'Non validé'}
                     </span>
                 </div>
-                <div class="module-details">
-                    ${module.description ? `<p class="module-description">${module.description}</p>` : ''}
-                    <p><strong>Date de début:</strong> ${module.date_debut || '-'}</p>
-                    <p><strong>Date de fin:</strong> ${module.date_fin || '-'}</p>
-                    <p><strong>Formateur:</strong> ${module.formateur || '-'}</p>
-                    ${critereHTML}
-                    ${contenuHTML}
-                </div>
+                ${dateValidation}
                 <div class="module-actions">
-                    ${!module.complete ? `<button class="action-btn btn-complete-module" data-module-id="${module.id}">Terminer</button>` : ''}
+                    ${!module.complete ? 
+                        `<button class="action-btn btn-complete-module" data-module-id="${module.id}">Valider</button>` : 
+                        `<button class="action-btn btn-uncomplete-module" data-module-id="${module.id}">Annuler la validation</button>`
+                    }
                 </div>
             `;
             modulesList.appendChild(moduleItem);
@@ -232,22 +213,15 @@ function getStatusText(stepData) {
     }
 }
 
-// Fonction pour terminer un module de formation
+// Fonction pour valider un module de formation
 function completeModule(soldier, moduleId) {
-    if (!soldier || !soldier.progression_recrue || !soldier.progression_recrue.modules || !soldier.progression_recrue.modules.liste) {
-        console.error('Impossible de terminer le module: données manquantes');
-        return;
-    }
+    if (!soldier || !soldier.progression_recrue || !soldier.progression_recrue.modules) return;
     
-    // Trouver le module par son ID
-    const moduleIndex = soldier.progression_recrue.modules.liste.findIndex(m => m.id === moduleId);
-    if (moduleIndex === -1) {
-        console.error(`Module avec ID ${moduleId} non trouvé`);
-        return;
-    }
+    const module = soldier.progression_recrue.modules.liste.find(m => m.id === moduleId);
+    if (!module) return;
     
-    // Marquer le module comme complété
-    soldier.progression_recrue.modules.liste[moduleIndex].complete = true;
+    module.complete = true;
+    module.date_fin = new Date().toISOString().split('T')[0];
     soldier.progression_recrue.modules.liste[moduleIndex].date_fin = new Date().toISOString().split('T')[0];
     
     // Vérifier si tous les modules sont complétés
@@ -263,79 +237,67 @@ function completeModule(soldier, moduleId) {
     updateProgressionDisplay(soldier);
 }
 
-// Configurer les boutons de progression
+// Configurer les boutons pour les actions de progression
 function setupProgressionButtons(soldier) {
-    const progression = soldier.progression_recrue;
-    const soldierId = soldier.id;
+    if (!soldier || !soldier.progression_recrue) return;
     
-    // Formation Initiale
+    const progression = soldier.progression_recrue;
+    
+    // Bouton pour terminer la formation initiale
     const btnCompleteFormationInitiale = document.getElementById('btn-complete-formation-initiale');
     if (btnCompleteFormationInitiale) {
         btnCompleteFormationInitiale.onclick = () => {
             progression.formation_initiale.complete = true;
             progression.formation_initiale.date_fin = new Date().toISOString().split('T')[0];
-            saveSoldiersToStorage();
             updateProgressionDisplay(soldier);
-        };
-    }
-    
-    // Modules de formation
-    const btnAddModule = document.getElementById('btn-add-module');
-    if (btnAddModule) {
-        btnAddModule.onclick = () => {
-            // Initialiser les modules s'ils n'existent pas
-            if (!progression.modules) {
-                progression.modules = {
-                    complete: false,
-                    liste: []
-                };
-            }
-            
-            // Demander les informations du module
-            const moduleName = prompt('Nom du module de formation:', '');
-            if (!moduleName) return;
-            
-            const formateur = prompt('Nom du formateur:', '');
-            
-            // Créer un nouvel ID unique pour le module
-            const moduleId = `module-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-            
-            // Ajouter le module à la liste
-            progression.modules.liste.push({
-                id: moduleId,
-                nom: moduleName,
-                date_debut: new Date().toISOString().split('T')[0],
-                date_fin: null,
-                formateur: formateur,
-                complete: false
-            });
-            
             saveSoldiersToStorage();
-            updateProgressionDisplay(soldier);
-        };
-    }
-    
-    const btnCompleteModules = document.getElementById('btn-complete-modules');
-    if (btnCompleteModules) {
-        btnCompleteModules.onclick = () => {
-            if (!progression.modules || !progression.modules.liste || progression.modules.liste.length === 0) {
-                alert('Aucun module à compléter. Ajoutez d\'abord des modules de formation.');
-                return;
-            }
-            
-            // Marquer tous les modules comme complétés
-            progression.modules.liste.forEach(module => {
-                module.complete = true;
-                if (!module.date_fin) {
-                    module.date_fin = new Date().toISOString().split('T')[0];
-                }
-            });
             
             progression.modules.complete = true;
             saveSoldiersToStorage();
             updateProgressionDisplay(soldier);
         };
     }
+    
+    // Configurer les gestionnaires d'événements pour les modules
+    // Utiliser la délégation d'événements pour gérer les boutons des modules
+    document.addEventListener('click', function(e) {
+        // Bouton pour valider un module
+        if (e.target && e.target.classList.contains('btn-complete-module')) {
+            const moduleId = e.target.getAttribute('data-module-id');
+            if (moduleId) {
+                const module = progression.modules.liste.find(m => m.id === moduleId);
+                if (module) {
+                    module.complete = true;
+                    module.date_fin = new Date().toISOString().split('T')[0];
+                    
+                    // Vérifier si tous les modules sont complétés
+                    const allModulesComplete = progression.modules.liste.every(m => m.complete);
+                    progression.modules.complete = allModulesComplete;
+                    
+                    updateProgressionDisplay(soldier);
+                    saveSoldiersToStorage();
+                }
+            }
+        }
+        
+        // Bouton pour annuler la validation d'un module
+        if (e.target && e.target.classList.contains('btn-uncomplete-module')) {
+            const moduleId = e.target.getAttribute('data-module-id');
+            if (moduleId) {
+                const module = progression.modules.liste.find(m => m.id === moduleId);
+                if (module) {
+                    module.complete = false;
+                    module.date_fin = null;
+                    
+                    // Mettre à jour le statut global des modules
+                    progression.modules.complete = false;
+                    
+                    updateProgressionDisplay(soldier);
+                    saveSoldiersToStorage();
+                }
+            }
+        }
+    });
     
     // Intégration à l'Unité
     const btnStartIntegration = document.getElementById('btn-start-integration');
