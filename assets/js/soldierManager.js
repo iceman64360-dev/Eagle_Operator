@@ -480,7 +480,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Afficher la modale
-        modal.classList.remove('hidden-modal');
+        const soldierFileModal = document.getElementById('soldierFileModal');
+        soldierFileModal.classList.remove('hidden-modal');
         
         // Gérer la fermeture de la modale - version simplifiée pour éviter les blocages
         const closeBtn = document.getElementById('closeSoldierFileBtn');
@@ -488,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Utiliser onclick plutôt que addEventListener pour éviter les problèmes de portée
             closeBtn.onclick = function() {
                 // Masquer la modale immédiatement
-                modal.classList.add('hidden-modal');
+                soldierFileModal.classList.add('hidden-modal');
                 
                 // Utiliser setTimeout pour décaler le rafraîchissement et éviter de bloquer l'interface
                 setTimeout(function() {

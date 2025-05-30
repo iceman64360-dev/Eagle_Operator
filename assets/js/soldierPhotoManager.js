@@ -90,21 +90,58 @@ function getSoldierPhoto(soldier) {
 
 // Fonction pour sauvegarder la photo d'un soldat
 function saveSoldierPhoto(soldier, imageData) {
-    // Créer une clé unique basée sur le matricule du soldat
-    const photoKey = `soldier_photo_${soldier.id}`;
-    
-    // Sauvegarder la photo dans le localStorage avec le matricule comme nom de fichier
-    localStorage.setItem(photoKey, imageData);
-    
-    // Mettre à jour la référence dans les données du soldat
-    soldier.photoRef = photoKey;
-    
-    // Ajouter un attribut avec le matricule pour faciliter la recherche
-    soldier.photoMatricule = soldier.id;
-    
-    // Supprimer l'ancienne propriété photo si elle existe
-    if (soldier.photo) {
-        delete soldier.photo;
+    try {
+        // Créer une clé unique basée sur le matricule du soldat
+        const photoKey = `soldier_photo_${soldier.id}`;
+        
+        // Compresser l'image si nécessaire
+        const compressedImage = compressImage(imageData);
+        
+        try {
+            // Essayer de sauvegarder la photo dans le localStorage
+            localStorage.setItem(photoKey, compressedImage);
+        } catch (storageError) {
+            // En cas d'erreur de quota, essayer de libérer de l'espace
+            if (storageError.name === 'QuotaExceededError') {
+                console.warn('Quota de stockage dépassé, tentative de libération d\'espace...');
+                clearOldPhotos();
+                
+                // Réessayer après avoir libéré de l'espace
+                try {
+                    localStorage.setItem(photoKey, compressedImage);
+                } catch (retryError) {
+                    // Si ça échoue encore, utiliser une version encore plus compressée
+                    const highlyCompressedImage = compressImage(imageData, 0.5);
+                    try {
+                        localStorage.setItem(photoKey, highlyCompressedImage);
+                    } catch (finalError) {
+                        console.error('Impossible de stocker la photo, même après compression:', finalError);
+                        alert('Impossible de stocker la photo. L\'espace de stockage est insuffisant.');
+                        return false;
+                    }
+                }
+            } else {
+                console.error('Erreur lors de la sauvegarde de la photo:', storageError);
+                alert('Erreur lors de la sauvegarde de la photo.');
+                return false;
+            }
+        }
+        
+        // Mettre à jour la référence dans les données du soldat
+        soldier.photoRef = photoKey;
+        
+        // Ajouter un attribut avec le matricule pour faciliter la recherche
+        soldier.photoMatricule = soldier.id;
+        
+        // Supprimer l'ancienne propriété photo si elle existe
+        if (soldier.photo) {
+            delete soldier.photo;
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Erreur lors de la sauvegarde de la photo:', error);
+        return false;
     }
     
     // Mettre à jour les données des soldats dans le localStorage
@@ -629,4 +666,89 @@ function findElementWithText(element, selector, text) {
     const elements = Array.from(element.querySelectorAll(selector || '*'));
     // Trouver le premier élément qui contient le texte spécifié
     return elements.find(el => el.textContent.includes(text)) || null;
+}
+
+// Fonction pour compresser une image base64
+function compressImage(base64Image, quality = 0.7) {
+    // Si l'image est déjà petite, la retourner telle quelle
+    if (base64Image.length < 100000) { // Moins de 100 KB
+        return base64Image;
+    }
+    
+    try {
+        // Créer un élément canvas temporaire
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Créer une image temporaire
+        const img = new Image();
+        img.src = base64Image;
+        
+        // Définir une taille maximale pour l'image
+        const maxWidth = 800;
+        const maxHeight = 800;
+        
+        // Calculer les nouvelles dimensions tout en conservant le ratio
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > height) {
+            if (width > maxWidth) {
+                height *= maxWidth / width;
+                width = maxWidth;
+            }
+        } else {
+            if (height > maxHeight) {
+                width *= maxHeight / height;
+                height = maxHeight;
+            }
+        }
+        
+        // Définir les dimensions du canvas
+        canvas.width = width;
+        canvas.height = height;
+        
+        // Dessiner l'image redimensionnée sur le canvas
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Convertir le canvas en base64 avec compression
+        return canvas.toDataURL('image/jpeg', quality);
+    } catch (error) {
+        console.error('Erreur lors de la compression de l\'image:', error);
+        return base64Image; // Retourner l'image originale en cas d'erreur
+    }
+}
+
+// Fonction pour libérer de l'espace en supprimant les anciennes photos
+function clearOldPhotos() {
+    try {
+        // Récupérer la liste des soldats
+        const soldiersData = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+        const activePhotoKeys = new Set();
+        
+        // Collecter les clés des photos actuellement utilisées
+        soldiersData.forEach(soldier => {
+            if (soldier.photoRef) {
+                activePhotoKeys.add(soldier.photoRef);
+            }
+        });
+        
+        // Parcourir toutes les clés du localStorage
+        let removedCount = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            
+            // Si c'est une clé de photo mais qu'elle n'est pas utilisée, la supprimer
+            if (key.startsWith('soldier_photo_') && !activePhotoKeys.has(key)) {
+                localStorage.removeItem(key);
+                removedCount++;
+            }
+        }
+        
+        console.log(`${removedCount} anciennes photos supprimées pour libérer de l'espace`);
+        return removedCount > 0;
+    } catch (error) {
+        console.error('Erreur lors du nettoyage des anciennes photos:', error);
+        return false;
+    }
 }
