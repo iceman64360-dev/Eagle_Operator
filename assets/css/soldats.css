@@ -103,9 +103,9 @@
 
 /* Styles pour la modale du dossier soldat */
 .soldier-file-modal {
-    max-width: 800px;
-    width: 90%;
-    max-height: 85vh;
+    width: 95%;
+    max-width: 1200px;
+    max-height: 90vh;
     overflow-y: auto;
 }
 

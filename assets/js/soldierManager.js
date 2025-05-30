@@ -365,19 +365,24 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Initialiser la progression de la recrue si elle n'existe pas et que le statut est "recrue"
         if (soldier.statut && soldier.statut.toLowerCase() === 'recrue' && !soldier.progression_recrue) {
+            // Utiliser la date d'incorporation comme date de début de formation initiale si disponible
+            const dateDebut = soldier.date_incorporation ? new Date(soldier.date_incorporation) : new Date();
+            
+            // Calculer la date de fin prévue (2 semaines après la date de début)
+            const dateFinPrevue = new Date(dateDebut);
+            dateFinPrevue.setDate(dateDebut.getDate() + 14); // +14 jours (2 semaines)
+            
             soldier.progression_recrue = {
                 formation_initiale: {
                     complete: false,
-                    date_debut: new Date().toISOString().split('T')[0],
+                    date_debut: dateDebut.toISOString().split('T')[0],
                     date_fin: null,
+                    date_fin_prevue: dateFinPrevue.toISOString().split('T')[0],
                     note: null
                 },
-                specialisation: {
+                modules: {
                     complete: false,
-                    date_debut: null,
-                    date_fin: null,
-                    specialite: null,
-                    note: null
+                    liste: []
                 },
                 integration_unite: {
                     complete: false,
