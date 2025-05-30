@@ -1,0 +1,172 @@
+/* assets/css/style.css */
+
+/* Global Resets and Base Styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    height: 100%;
+}
+
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+
+body {
+    font-family: 'Roboto Condensed', sans-serif;
+    background-color: #1c1e22; /* Dark background */
+    color: #E0E0E0; /* Light text */
+}
+
+/* Common Header */
+header {
+    background-color: #111;
+    color: #FFBF00; /* Gold accent */
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #FFBF00;
+}
+
+header .logo-container {
+    display: flex;
+    align-items: center;
+}
+
+header #logo {
+    height: 50px;
+    margin-right: 15px;
+}
+
+header h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.8em;
+    margin: 0;
+}
+
+/* Common Navigation */
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+nav ul li {
+    margin-left: 20px;
+}
+
+nav ul li a {
+    color: #E0E0E0;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+nav ul li a:hover,
+nav ul li a.active {
+    background-color: #FFBF00;
+    color: #111;
+}
+
+/* Common Main Content Area Styling */
+main {
+    padding: 20px;
+    min-height: calc(100vh - 160px); /* Adjust 160px based on actual header/footer height */
+}
+
+/* Common Footer */
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #111;
+    color: #6c757d;
+    border-top: 1px solid #3a3f44;
+    margin-top: 30px;
+}
+
+/* Styles for Loading Page (index.html) - Themed */
+body.loading-page-theme {
+    font-family: 'Orbitron', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    height: 100vh;
+    background-color: #1c1e22; /* Consistent dark background */
+}
+
+.loading-page-theme .loading-container {
+    text-align: center;
+    padding: 20px;
+}
+
+.loading-page-theme .loading-logo img {
+    width: 150px;
+    height: auto;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite ease-in-out;
+}
+
+.loading-page-theme .progress-bar-container {
+    width: 80%;
+    max-width: 500px;
+    background-color: #333;
+    border: 1px solid #FFBF00; /* Gold accent */
+    border-radius: 6px;
+    padding: 3px;
+    margin: 20px auto;
+    box-shadow: 0 0 10px rgba(255, 191, 0, 0.5);
+}
+
+.loading-page-theme .progress-bar {
+    width: 0%;
+    height: 20px;
+    background-color: #FFBF00; /* Gold fill */
+    border-radius: 3px;
+    transition: width 0.5s ease-out;
+    text-align: center;
+    line-height: 20px;
+    font-size: 12px;
+    color: #1c1e22; /* Dark text on gold bar */
+    font-weight: bold;
+}
+
+.loading-page-theme .loading-status {
+    width: 80%;
+    max-width: 500px;
+    min-height: 60px; /* Use min-height to allow content to expand */
+    margin: 0 auto 20px auto;
+    padding: 10px;
+    border: 1px solid #FFBF00; /* Gold border */
+    border-radius: 4px;
+    background-color: rgba(0,0,0,0.2);
+    color: #FFBF00; /* Gold text */
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden; /* Keep if text should be clipped, or adjust */
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+}

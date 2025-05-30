@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eagle Company - Initialisation...</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        /* Style pour cacher le contenu principal jusqu'au chargement si nécessaire */
+        body.loading-page-theme {
+            background-color: #1a1d21;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .loading-container {
+            text-align: center;
+            max-width: 500px;
+            padding: 20px;
+        }
+        
+        .loading-logo img {
+            width: 120px;
+            margin-bottom: 20px;
+        }
+        
+        .loading-status {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #ffbf00;
+        }
+        
+        .progress-bar-container {
+            height: 10px;
+            background-color: #2c313a;
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: #ffbf00;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="loading-page-theme">
+    <div class="loading-container">
+        <div class="loading-logo">
+            <img src="assets/img/logo.png" alt="Eagle Company Logo">
+        </div>
+        <div class="loading-status" id="loadingStatus">INITIALISATION EN COURS...</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+    </div>
+
+    <script>
+        // Simuler un chargement progressif
+        let progress = 0;
+        const progressBar = document.getElementById('progressBar');
+        const loadingStatus = document.getElementById('loadingStatus');
+        const loadingMessages = [
+            "INITIALISATION EN COURS...",
+            "CHARGEMENT DES DONNÉES...",
+            "VÉRIFICATION DES SYSTÈMES...",
+            "CONNEXION ÉTABLIE...",
+            "ACCÈS AUTORISÉ"
+        ];
+
+        const interval = setInterval(() => {
+            progress += Math.floor(Math.random() * 10) + 1;
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(interval);
+                // Redirection après un court délai
+                setTimeout(() => {
+                    window.location.href = 'pages/dashboard.html';
+                }, 1000);
+            }
+            
+            // Mettre à jour la barre de progression
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = progress + '%';
+            
+            // Mettre à jour le message de statut
+            const messageIndex = Math.min(Math.floor(progress / 20), loadingMessages.length - 1);
+            loadingStatus.textContent = loadingMessages[messageIndex];
+        }, 200);
+    </script>
+</body>
+</html>

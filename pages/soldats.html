@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Soldats - Eagle Company</title>
+    <link rel="stylesheet" href="../assets/css/style.css"> <!-- Styles communs -->
+    <link rel="stylesheet" href="../assets/css/soldats.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="../assets/img/logo.png" alt="Eagle Company Logo" id="logo">
+            <h1>Eagle Company - Gestion des Soldats</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="../index.html">Tableau de Bord</a></li>
+                <li><a href="unites.html">Unités</a></li>
+                <li><a href="soldats.html" class="active">Soldats</a></li>
+                <li><a href="missions.html">Missions</a></li>
+                <li><a href="formations.html">Formations</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <div class="controls-container">
+            <div class="search-filter-controls">
+                <input type="text" id="searchSoldier" placeholder="Rechercher par nom ou unité...">
+                <div class="data-management-controls">
+                    <button id="exportData" class="action-btn">Exporter les données</button>
+                    <button id="importData" class="action-btn">Importer des données</button>
+                    <input type="file" id="importFile" accept=".json" title="Importer un fichier JSON de données">
+                </div>
+                <select id="filterGrade" title="Filtrer par Grade">
+                    <option value="">Filtrer par Grade</option>
+                    <!-- Options populées par JS -->
+                </select>
+                <select id="filterStatus" title="Filtrer par Statut">
+                    <option value="">Filtrer par Statut</option>
+                    <!-- Options populées par JS -->
+                </select>
+                <button id="resetFilters">Réinitialiser</button>
+            </div>
+        </div>
+
+        <div id="soldierListContainer">
+            <div class="soldier-list-header">
+                <h2>Liste des Soldats</h2>
+                <button id="openCreateSoldierModal" class="affect-btn">
+    <span class="icon" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="3" width="3" height="13" rx="1" fill="#181a1b"/><rect x="3" y="8" width="13" height="3" rx="1" fill="#181a1b"/></svg></span>
+    Créer un soldat
+</button>
+            </div>
+            <div id="soldierList">
+                <!-- Les cartes des soldats seront injectées ici par JavaScript -->
+                <p id="loadingMessage">Chargement des données des soldats...</p>
+            </div>
+        </div>
+
+        <!-- MODALE DOSSIER SOLDAT -->
+        <div id="soldierFileModal" class="modal-bg hidden-modal">
+            <div class="modal military-modal soldier-file-modal">
+                <h2>Dossier du Soldat <span id="soldierFileTitle"></span></h2>
+                <div class="soldier-file-content">
+                    <div class="soldier-file-tabs">
+                        <button class="tab-btn active" data-tab="identity">Identité</button>
+                        <button class="tab-btn" data-tab="service">Service</button>
+                        <button class="tab-btn" data-tab="training">Formations</button>
+                        <button class="tab-btn" data-tab="missions">Missions</button>
+                        <button class="tab-btn" data-tab="sanctions">Sanctions</button>
+                        <button class="tab-btn" data-tab="history">Historique</button>
+                    </div>
+                    
+                    <div class="soldier-file-tab-content">
+                        <!-- Onglet Identité -->
+                        <div class="tab-pane active" id="identity-tab">
+                            <div class="soldier-file-grid">
+                                <div class="soldier-file-photo">
+                                    <div id="photo-container" class="placeholder-photo">Photo</div>
+                                    <input type="file" id="photo-upload" accept="image/*" style="display: none;">
+                                    <button class="edit-btn" id="edit-photo-btn" title="Modifier la photo"><i class="fas fa-edit"></i></button>
+                                </div>
+                                <div class="soldier-file-details">
+                                    <div class="detail-row">
+                                        <strong>Matricule:</strong> <span id="file-id"></span>
+                                    </div>
+                                    <div class="detail-row editable-field">
+                                        <strong>Pseudo:</strong> <span id="file-pseudo"></span>
+                                        <button class="edit-btn" data-field="pseudo" title="Modifier le pseudo"><i class="fas fa-edit"></i></button>
+                                    </div>
+                                    <div class="detail-row">
+                                        <strong>Grade:</strong> <span id="file-grade"></span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <strong>Statut:</strong> <span id="file-statut"></span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <strong>Unité:</strong> <span id="file-unite"></span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <strong>Rôle:</strong> <span id="file-role"></span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <strong>Date d'incorporation:</strong> <span id="file-date"></span>
+                                    </div>
+                                    <div class="soldier-action-buttons">
+                                        <button id="promote-btn" class="action-btn">Promotion</button>
+                                        <button id="change-status-btn" class="action-btn">Statut</button>
+                                        <button id="reassign-btn" class="action-btn">Réaffecter</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Onglet États de Service -->
+                        <div class="tab-pane" id="service-tab">
+                            <h3>Historique de Service</h3>
+                            <div class="service-history">
+                                <p class="placeholder-text">Aucun état de service enregistré pour ce soldat.</p>
+                                <ul id="service-list" class="timeline-list">
+                                    <!-- Les états de service seront ajoutés ici dynamiquement -->
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Onglet Formations -->
+                        <div class="tab-pane" id="training-tab">
+                            <h3>Formations Complétées</h3>
+                            <div class="training-list">
+                                <p class="placeholder-text">Aucune formation enregistrée pour ce soldat.</p>
+                                <ul id="training-list" class="badge-list">
+                                    <!-- Les formations seront ajoutées ici dynamiquement -->
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Onglet Missions -->
+                        <div class="tab-pane" id="missions-tab">
+                            <h3>Missions Effectuées</h3>
+                            <div class="missions-list">
+                                <p class="placeholder-text">Aucune mission enregistrée pour ce soldat.</p>
+                                <ul id="missions-list" class="timeline-list">
+                                    <!-- Les missions seront ajoutées ici dynamiquement -->
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Onglet Sanctions -->
+                        <div class="tab-pane" id="sanctions-tab">
+                            <h3>Sanctions Disciplinaires</h3>
+                            <div class="sanctions-list">
+                                <p class="placeholder-text">Aucune sanction enregistrée pour ce soldat.</p>
+                                <ul id="sanctions-list" class="timeline-list">
+                                    <!-- Les sanctions seront ajoutées ici dynamiquement -->
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- Onglet Historique -->
+                        <div class="tab-pane" id="history-tab">
+                            <h3>Historique des Changements</h3>
+                            <div class="history-filters">
+                                <button class="filter-btn active" data-filter="all">Tous</button>
+                                <button class="filter-btn" data-filter="grade">Grades</button>
+                                <button class="filter-btn" data-filter="statut">Statuts</button>
+                                <button class="filter-btn" data-filter="unite">Unités</button>
+                            </div>
+                            <div class="history-list">
+                                <p class="placeholder-text" id="history-placeholder">Aucun changement enregistré pour ce soldat.</p>
+                                <ul id="history-list" class="timeline-list">
+                                    <!-- L'historique sera ajouté ici dynamiquement -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button id="closeSoldierFileBtn" class="affect-btn military-btn">Fermer le dossier</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODALE CREATION SOLDAT -->
+        <div id="createSoldierModal" class="modal-bg hidden-modal">
+            <div class="modal military-modal">
+                <h2>Création d'un Soldat</h2>
+                <form id="createSoldierForm" autocomplete="off">
+                    <div class="form-group">
+                        <label>Matricule :</label>
+                        <input type="text" id="soldierId" readonly title="Matricule du soldat" placeholder="Généré automatiquement">
+                    </div>
+                    <div class="form-group">
+                        <label>Date d'incorporation :</label>
+                        <input type="text" id="incorporationDate" readonly title="Date d'incorporation" placeholder="Généré automatiquement">
+                    </div>  
+                    <div class="form-group">
+                        <label>Pseudo :</label>
+                        <input type="text" id="soldierPseudo" required maxlength="32" title="Pseudo du soldat" placeholder="Entrer le pseudo">
+                    </div>
+                    <div class="form-group">
+                        <label>Sexe :</label>
+                        <select id="soldierSexe" required title="Sexe du soldat">
+                            <option value="">Sélectionner</option>
+                            <option value="Homme">Homme</option>
+                            <option value="Femme">Femme</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><input type="checkbox" id="isRecrue"> Recrue</label>
+                    </div>
+                    <div class="form-group">
+                        <label>Grade :</label>
+                        <select id="soldierGrade" required title="Grade du soldat">
+                            <option value="">Sélectionner</option>
+                            <option value="Soldat">Soldat</option>
+                            <option value="Caporal">Caporal</option>
+                            <option value="Sergent">Sergent</option>
+                            <option value="Lieutenant">Lieutenant</option>
+                            <option value="Capitaine">Capitaine</option>
+                            <option value="Commandant">Commandant</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Statut :</label>
+                        <select id="soldierStatut" required title="Statut du soldat">
+                            <option value="">Sélectionner</option>
+                            <option value="actif">Actif</option>
+                            <option value="blessé">Blessé</option>
+                            <option value="en formation">En formation</option>
+                            <option value="transféré">Transféré</option>
+                            <option value="retraite">Retraite</option>
+                            <option value="recrue">Recrue</option>
+                        </select>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="submit" class="affect-btn">Valider</button>
+                        <button type="button" id="cancelCreateSoldier" class="affect-btn">Annuler</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2024-2025 Eagle Company - Tous droits réservés.</p>
+    </footer>
+
+    <script src="../assets/js/soldierManager.js"></script>
+    <script src="../assets/js/soldierPhotoManager.js"></script>
+    <script src="../assets/js/dataManager.js"></script>
+</body>
+</html>
