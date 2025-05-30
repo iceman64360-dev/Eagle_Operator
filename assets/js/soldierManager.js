@@ -35,36 +35,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function saveSoldiersToStorage() {
         try {
-            const response = await fetch('/api/soldiers', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(allSoldiersData)
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            console.log('Données des soldats sauvegardées avec succès sur le serveur');
+            // En environnement GitHub Pages, utiliser localStorage pour stocker les données
+            localStorage.setItem('eagleOperator_soldiers', JSON.stringify(allSoldiersData));
+            console.log('Données des soldats sauvegardées avec succès dans localStorage');
         } catch (error) {
-            console.error('Erreur lors de la sauvegarde des données sur le serveur:', error);
+            console.error('Erreur lors de la sauvegarde des données dans localStorage:', error);
             alert('Erreur lors de la sauvegarde des données. Veuillez réessayer.');
         }
     }
 
     async function fetchSoldiers() {
         try {
-            // En environnement GitHub Pages, charger directement le fichier JSON statique
-            const response = await fetch('./data/soldiers.json');
+            // Vérifier d'abord si des données existent dans localStorage
+            const savedData = localStorage.getItem('eagleOperator_soldiers');
             
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            if (savedData) {
+                console.log('Chargement des données depuis localStorage');
+                allSoldiersData = JSON.parse(savedData);
+            } else {
+                // Si aucune donnée n'est trouvée dans localStorage, charger le fichier JSON statique
+                console.log('Aucune donnée trouvée dans localStorage, chargement du fichier JSON statique...');
+                const response = await fetch('./data/soldiers.json');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const soldiers = await response.json();
+                allSoldiersData = soldiers;
+                
+                // Sauvegarder les données dans localStorage pour une utilisation future
+                saveSoldiersToStorage();
             }
-            
-            const soldiers = await response.json();
-            allSoldiersData = soldiers;
             
             // Afficher les données
             populateFilters(allSoldiersData);
@@ -128,23 +130,18 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Fonction pour gérer les photos des soldats
     function getSoldierPhoto(soldier) {
-        // Vérifier si le soldat a une référence de photo
-        if (soldier.photoRef) {
-            // Récupérer la photo depuis le localStorage avec la clé unique
-            const photoData = localStorage.getItem(soldier.photoRef);
-            if (photoData) {
-                return photoData;
-            }
+        // Vérifier si l'ID du soldat est valide
+        if (!soldier || !soldier.id) {
+            console.error('ID de soldat invalide');
+            return './assets/images/default-avatar.png';
         }
+
+        // Vérifier d'abord si la photo existe dans localStorage
+        const photoKey = `eagleOperator_photo_${soldier.id}`;
+        const savedPhoto = localStorage.getItem(photoKey);
         
-        // Si le soldat a une photo directement dans ses données (ancien format)
-        if (soldier.photo) {
-            // Migrer vers le nouveau format
-            const photoKey = `soldier_photo_${soldier.id}`;
-            localStorage.setItem(photoKey, soldier.photo);
-            soldier.photoRef = photoKey;
-            delete soldier.photo; // Supprimer l'ancienne référence
-            saveSoldiersToStorage();
+        if (savedPhoto) {
+            return Promise.resolve(savedPhoto);
             return localStorage.getItem(photoKey);
         }
         
