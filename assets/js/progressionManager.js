@@ -17,6 +17,99 @@ function saveSoldiersToStorage() {
     localStorage.setItem('eagleOperator_soldiers', JSON.stringify(allSoldiersData));
 }
 
+// Fonction pour synchroniser complètement les données entre soldats et unités
+function synchronizeRecruitData(soldier) {
+    if (!soldier) return;
+    
+    console.log('Synchronisation des données pour la recrue:', soldier.pseudo);
+    
+    // 1. Charger les unités depuis le localStorage
+    const unitsData = localStorage.getItem('eagleOperator_units');
+    if (!unitsData) return;
+    
+    const units = JSON.parse(unitsData);
+    
+    // 2. Si le soldat a une unité assignée, s'assurer qu'il est dans les recrues potentielles de cette unité
+    if (soldier.unité) {
+        const unitId = soldier.unité;
+        const unit = units.find(u => u.id_unite === unitId);
+        
+        if (unit) {
+            console.log('Unité trouvée:', unit.nom);
+            
+            // Initialiser les recrues potentielles si nécessaire
+            if (!unit.recrues_potentielles) {
+                unit.recrues_potentielles = [];
+            }
+            
+            // Vérifier si la recrue est déjà dans la liste
+            const recrueIndex = unit.recrues_potentielles.findIndex(r => r && r.id === soldier.id);
+            
+            if (recrueIndex === -1) {
+                console.log('Ajout de la recrue aux recrues potentielles de l\'unité');
+                
+                // Ajouter la recrue à la première position disponible
+                let added = false;
+                for (let i = 0; i < 4; i++) {
+                    if (!unit.recrues_potentielles[i]) {
+                        unit.recrues_potentielles[i] = {
+                            id: soldier.id,
+                            pseudo: soldier.pseudo,
+                            grade: soldier.grade
+                        };
+                        added = true;
+                        break;
+                    }
+                }
+                
+                // Si aucune position n'est disponible, ajouter à la fin
+                if (!added) {
+                    unit.recrues_potentielles.push({
+                        id: soldier.id,
+                        pseudo: soldier.pseudo,
+                        grade: soldier.grade
+                    });
+                }
+                
+                // Sauvegarder les unités mises à jour
+                localStorage.setItem('eagleOperator_units', JSON.stringify(units));
+            }
+        }
+    }
+    
+    // 3. Si le soldat a une progression de recrue, s'assurer que les données sont cohérentes
+    if (soldier.progression_recrue) {
+        const progression = soldier.progression_recrue;
+        
+        // S'assurer que l'escouade provisoire est bien définie
+        if (progression.formation_initiale && progression.formation_initiale.complete) {
+            if (!progression.formation_initiale.escouade_provisoire && soldier.unité) {
+                progression.formation_initiale.escouade_provisoire = soldier.unité;
+            }
+            
+            // S'assurer que le parrain est bien défini
+            if (!progression.formation_initiale.parrain) {
+                // Trouver le chef d'escouade pour le désigner comme parrain
+                const escouadeId = progression.formation_initiale.escouade_provisoire || soldier.unité;
+                if (escouadeId) {
+                    const chefEscouade = allSoldiersData.find(s => 
+                        s.unité === escouadeId && 
+                        s.statut === 'Actif' && 
+                        (s.grade === 'Sergent' || s.grade === 'Sergent-Chef' || s.grade === 'Caporal-Chef')
+                    );
+                    
+                    if (chefEscouade) {
+                        progression.formation_initiale.parrain = chefEscouade.id;
+                    }
+                }
+            }
+        }
+        
+        // Sauvegarder les modifications
+        saveSoldiersToStorage();
+    }
+}
+
 // Fonction pour initialiser les modules standard de formation
 function initializeStandardModules(progression) {
     if (!progression.modules) {
@@ -58,6 +151,19 @@ function initializeStandardModules(progression) {
     // Ajouter les modules à la liste (sans les valider automatiquement)
     progression.modules.liste = modulesStandard;
 }
+
+// Synchroniser toutes les recrues au chargement de la page
+document.addEventListener('DOMContentLoaded', () => {
+    // Charger les données des soldats
+    loadSoldiersData();
+    
+    // Synchroniser les données pour toutes les recrues
+    allSoldiersData.forEach(soldier => {
+        if (soldier.statut && soldier.statut.toLowerCase() === 'recrue') {
+            synchronizeRecruitData(soldier);
+        }
+    });
+});
 
 // Fonction pour mettre à jour l'affichage de la progression d'une recrue
 function updateProgressionDisplay(soldier) {
@@ -131,12 +237,29 @@ function updateProgressionDisplay(soldier) {
     
     const escouadeElement = document.getElementById('formation-initiale-escouade');
     if (escouadeElement) {
-        escouadeElement.textContent = progression.formation_initiale.escouade_provisoire || '-';
+        // Trouver le nom de l'escouade à partir de son ID
+        let escouadeNom = progression.formation_initiale.escouade_provisoire || '-';
+        if (escouadeNom !== '-') {
+            const units = JSON.parse(localStorage.getItem('eagleOperator_units') || '[]');
+            const escouade = units.find(u => u.id_unite === progression.formation_initiale.escouade_provisoire);
+            if (escouade) {
+                escouadeNom = escouade.nom;
+            }
+        }
+        escouadeElement.textContent = escouadeNom;
     }
     
     const parrainElement = document.getElementById('formation-initiale-parrain');
     if (parrainElement) {
-        parrainElement.textContent = progression.formation_initiale.parrain || '-';
+        // Trouver le nom du parrain à partir de son ID
+        let parrainNom = progression.formation_initiale.parrain || '-';
+        if (parrainNom !== '-') {
+            const parrain = allSoldiersData.find(s => s.id === progression.formation_initiale.parrain);
+            if (parrain) {
+                parrainNom = `${parrain.grade} ${parrain.pseudo}`;
+            }
+        }
+        parrainElement.textContent = parrainNom;
     }
     
     if (progression.formation_initiale.complete) completedSteps++;
@@ -513,12 +636,54 @@ function setupProgressionButtons(soldier) {
             let escouadeNom = selectedEscouade;
             let parrainNom = selectedParrain;
 
+            // Charger les unités avec la clé harmonisée
             const units = JSON.parse(localStorage.getItem('eagleOperator_units') || '[]');
-            const escouade = units.find(u => u.id === selectedEscouade);
+            
+            // Trouver l'escouade par son ID (id_unite)
+            const escouade = units.find(u => u.id_unite === selectedEscouade);
             if (escouade) {
                 escouadeNom = escouade.nom;
+                
+                // Mettre à jour l'unité du soldat avec l'ID de l'escouade
+                soldier.unité = selectedEscouade;
+                
+                // Ajouter la recrue aux recrues potentielles de l'escouade
+                if (!escouade.recrues_potentielles) {
+                    escouade.recrues_potentielles = [];
+                }
+                
+                // Vérifier si la recrue n'est pas déjà dans la liste
+                const recrueIndex = escouade.recrues_potentielles.findIndex(r => r && r.id === soldier.id);
+                if (recrueIndex === -1) {
+                    // Ajouter la recrue à la première position disponible
+                    let added = false;
+                    for (let i = 0; i < 4; i++) {
+                        if (!escouade.recrues_potentielles[i]) {
+                            escouade.recrues_potentielles[i] = {
+                                id: soldier.id,
+                                pseudo: soldier.pseudo,
+                                grade: soldier.grade
+                            };
+                            added = true;
+                            break;
+                        }
+                    }
+                    
+                    // Si aucune position n'est disponible, ajouter à la fin
+                    if (!added) {
+                        escouade.recrues_potentielles.push({
+                            id: soldier.id,
+                            pseudo: soldier.pseudo,
+                            grade: soldier.grade
+                        });
+                    }
+                }
+                
+                // Sauvegarder les unités mises à jour
+                localStorage.setItem('eagleOperator_units', JSON.stringify(units));
             }
 
+            // Trouver le parrain par son ID
             const parrain = allSoldiersData.find(s => s.id === selectedParrain);
             if (parrain) {
                 parrainNom = `${parrain.grade} ${parrain.pseudo}`;
@@ -534,6 +699,9 @@ function setupProgressionButtons(soldier) {
 
             // Sauvegarder les changements
             saveSoldiersToStorage();
+            
+            // Synchroniser toutes les données
+            synchronizeRecruitData(soldier);
 
             // Mettre à jour l'affichage
             updateProgressionDisplay(soldier);
