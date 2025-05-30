@@ -125,7 +125,15 @@ function updateProgressionDisplay(soldier) {
 
 // Mettre à jour le statut visuel d'une étape
 function updateStepStatus(stepElement, stepData) {
+    if (!stepElement) return;
+    
     stepElement.classList.remove('step-pending', 'step-in-progress', 'step-completed', 'step-failed');
+    
+    // Vérifier si stepData est défini
+    if (!stepData) {
+        stepElement.classList.add('step-pending');
+        return;
+    }
     
     if (stepData.complete) {
         stepElement.classList.add('step-completed');
@@ -140,6 +148,10 @@ function updateStepStatus(stepElement, stepData) {
 
 // Obtenir le texte du statut
 function getStatusText(stepData) {
+    if (!stepData) {
+        return 'Non commencé';
+    }
+    
     if (stepData.complete) {
         return 'Terminé';
     } else if (stepData.date_debut && !stepData.date_fin) {

@@ -23,34 +23,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Fonction pour migrer les anciennes photos vers le nouveau format
 function migrateOldPhotos() {
-    // Récupérer les données des soldats
-    const soldiersData = JSON.parse(localStorage.getItem('eagle_soldiers') || '[]');
-    let hasChanges = false;
-    
-    // Parcourir tous les soldats
-    soldiersData.forEach(soldier => {
-        // Si le soldat a une photo directement dans ses données (ancien format)
-        if (soldier.photo) {
-            // Créer une clé unique pour la photo basée sur le matricule du soldat
-            const photoKey = `soldier_photo_${soldier.id}`;
+    try {
+        // Récupérer les données des soldats (utiliser la clé harmonisée)
+        const soldiersData = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+        let hasChanges = false;
+        
+        // Parcourir tous les soldats
+        for (let i = 0; i < soldiersData.length; i++) {
+            const soldier = soldiersData[i];
             
-            // Stocker la photo dans le localStorage avec une clé unique
-            localStorage.setItem(photoKey, soldier.photo);
-            
-            // Mettre à jour la référence de la photo dans les données du soldat
-            soldier.photoRef = photoKey;
-            
-            // Supprimer l'ancienne référence
-            delete soldier.photo;
-            
-            hasChanges = true;
+            // Si le soldat a une photo directement dans ses données (ancien format)
+            if (soldier.photo) {
+                try {
+                    // Créer une clé unique pour la photo basée sur le matricule du soldat
+                    const photoKey = `soldier_photo_${soldier.id}`;
+                    
+                    // Compresser l'image avant de la stocker
+                    const compressedImage = compressImage(soldier.photo);
+                    
+                    try {
+                        // Stocker la photo dans le localStorage avec une clé unique
+                        localStorage.setItem(photoKey, compressedImage);
+                        
+                        // Mettre à jour la référence de la photo dans les données du soldat
+                        soldier.photoRef = photoKey;
+                        
+                        // Supprimer l'ancienne référence
+                        delete soldier.photo;
+                        
+                        hasChanges = true;
+                    } catch (storageError) {
+                        // En cas d'erreur de quota, essayer de libérer de l'espace
+                        if (storageError.name === 'QuotaExceededError') {
+                            console.warn(`Quota dépassé lors de la migration de la photo de ${soldier.id}, tentative de libération d'espace...`);
+                            if (clearOldPhotos()) {
+                                try {
+                                    // Réessayer avec une version plus compressée
+                                    const highlyCompressedImage = compressImage(soldier.photo, 0.5);
+                                    localStorage.setItem(photoKey, highlyCompressedImage);
+                                    
+                                    soldier.photoRef = photoKey;
+                                    delete soldier.photo;
+                                    hasChanges = true;
+                                } catch (finalError) {
+                                    console.error(`Impossible de migrer la photo de ${soldier.id}, même après compression`);
+                                    // Laisser la photo dans l'ancien format pour cet utilisateur
+                                }
+                            } else {
+                                console.error(`Impossible de libérer de l'espace pour la photo de ${soldier.id}`);
+                                // Arrêter la migration pour éviter d'autres erreurs
+                                break;
+                            }
+                        } else {
+                            console.error(`Erreur lors de la migration de la photo de ${soldier.id}:`, storageError);
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Erreur lors du traitement de la photo de ${soldier.id}:`, error);
+                }
+            }
         }
-    });
-    
-    // Sauvegarder les modifications si nécessaire
-    if (hasChanges) {
-        localStorage.setItem('eagle_soldiers', JSON.stringify(soldiersData));
-        console.log('Photos migrées vers le nouveau format');
+        
+        // Sauvegarder les modifications si nécessaire
+        if (hasChanges) {
+            localStorage.setItem('eagleOperator_soldiers', JSON.stringify(soldiersData));
+            console.log('Photos migrées vers le nouveau format');
+        }
+    } catch (error) {
+        console.error('Erreur lors de la migration des photos:', error);
     }
 }
 
