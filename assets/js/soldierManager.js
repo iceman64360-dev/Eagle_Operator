@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Vérifier si l'ID du soldat est valide
         if (!soldier || !soldier.id) {
             console.error('ID de soldat invalide');
-            return './assets/images/default-avatar.png';
+            return Promise.resolve('./assets/images/default-avatar.png');
         }
 
         // Vérifier d'abord si la photo existe dans localStorage
@@ -142,17 +142,31 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (savedPhoto) {
             return Promise.resolve(savedPhoto);
-            return localStorage.getItem(photoKey);
         }
         
-        // Aucune photo trouvée
-        return null;
+        // Si pas dans localStorage, essayer de charger depuis le dossier statique
+        const photoUrl = `./data/photos/${soldier.id}.jpg`;
+        
+        // Vérifier si la photo existe
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => {
+                // Sauvegarder l'URL dans localStorage pour accès futur
+                localStorage.setItem(photoKey, photoUrl);
+                resolve(photoUrl);
+            };
+            img.onerror = () => {
+                // Si la photo n'existe pas, utiliser l'avatar par défaut
+                resolve('./assets/images/default-avatar.png');
+            };
+            img.src = photoUrl;
+        });
     }
     
     // Fonction pour sauvegarder une photo de soldat
     function saveSoldierPhoto(soldier, imageData) {
         // Créer une clé unique pour la photo basée sur le matricule du soldat
-        const photoKey = `soldier_photo_${soldier.id}`;
+        const photoKey = `eagleOperator_photo_${soldier.id}`;
         
         // Stocker la photo dans le localStorage avec une clé unique
         localStorage.setItem(photoKey, imageData);
