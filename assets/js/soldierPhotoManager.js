@@ -2,8 +2,8 @@
 // Ce fichier contient des fonctions pour gérer les photos des soldats et les statuts
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Migrer les anciennes photos vers le nouveau format
-    migrateOldPhotos();
+    // Ne pas migrer automatiquement les photos au démarrage pour éviter les erreurs de quota
+    // migrateOldPhotos();
     
     // Appliquer les codes couleur aux statuts
     applyStatusColors();

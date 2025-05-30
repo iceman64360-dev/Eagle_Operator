@@ -21,7 +21,45 @@ function saveSoldiersToStorage() {
 function updateProgressionDisplay(soldier) {
     if (!soldier || !soldier.progression_recrue) return;
     
+    // S'assurer que la structure de progression est complète (pour la compatibilité avec les anciennes données)
     const progression = soldier.progression_recrue;
+    
+    // Initialiser les propriétés manquantes
+    if (!progression.formation_initiale) {
+        progression.formation_initiale = {
+            complete: false,
+            date_debut: new Date().toISOString().split('T')[0],
+            date_fin: null,
+            note: null
+        };
+    }
+    
+    if (!progression.modules) {
+        progression.modules = {
+            complete: false,
+            liste: []
+        };
+    }
+    
+    if (!progression.integration_unite) {
+        progression.integration_unite = {
+            complete: false,
+            date_debut: null,
+            date_fin: null,
+            unite: soldier.unité || null,
+            note: null
+        };
+    }
+    
+    if (!progression.evaluation_finale) {
+        progression.evaluation_finale = {
+            complete: false,
+            date: null,
+            resultat: null,
+            note: null
+        };
+    }
+    
     let completedSteps = 0;
     const totalSteps = 4; // Nombre total d'étapes
     
