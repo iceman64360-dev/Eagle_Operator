@@ -17,6 +17,48 @@ function saveSoldiersToStorage() {
     localStorage.setItem('eagleOperator_soldiers', JSON.stringify(allSoldiersData));
 }
 
+// Fonction pour initialiser les modules standard de formation
+function initializeStandardModules(progression) {
+    if (!progression.modules) {
+        progression.modules = {
+            complete: false,
+            liste: []
+        };
+    }
+    
+    if (!progression.modules.liste) {
+        progression.modules.liste = [];
+    }
+    
+    // Définir les trois modules standard de formation
+    const modulesStandard = [
+        {
+            id: 'module1',
+            nom: 'Techniques de combat',
+            description: 'Maîtrise des techniques de combat de base',
+            complete: false,
+            date_validation: null
+        },
+        {
+            id: 'module2',
+            nom: 'Communication tactique',
+            description: 'Apprentissage des protocoles de communication',
+            complete: false,
+            date_validation: null
+        },
+        {
+            id: 'module3',
+            nom: 'Survie en milieu hostile',
+            description: 'Techniques de survie en environnement difficile',
+            complete: false,
+            date_validation: null
+        }
+    ];
+    
+    // Ajouter les modules à la liste (sans les valider automatiquement)
+    progression.modules.liste = modulesStandard;
+}
+
 // Fonction pour mettre à jour l'affichage de la progression d'une recrue
 function updateProgressionDisplay(soldier) {
     if (!soldier || !soldier.progression_recrue) return;
@@ -42,10 +84,10 @@ function updateProgressionDisplay(soldier) {
         };
         
         // Ajouter les modules standard si la liste est vide
-        if (progression.modules.liste.length === 0) {
+        if (!progression.modules.liste || progression.modules.liste.length === 0) {
             initializeStandardModules(progression);
         }
-    } else if (progression.modules.liste && progression.modules.liste.length === 0) {
+    } else if (!progression.modules.liste || progression.modules.liste.length === 0) {
         // Ajouter les modules standard si la liste existe mais est vide
         initializeStandardModules(progression);
     }
