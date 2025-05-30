@@ -479,16 +479,11 @@ function setupProgressionButtons(soldier) {
     }
     
     // Activer/désactiver les boutons selon l'état de progression
-    if (btnStartIntegration) {
+    if (btnShowIntegrationForm) {
         // Formation Initiale et Modules doivent être complétés avant de commencer l'Intégration
-        btnStartIntegration.disabled = !progression.formation_initiale.complete || 
-                                     (progression.modules && progression.modules.liste && 
-                                      progression.modules.liste.length > 0 && !progression.modules.complete);
-    }
-    
-    if (btnStartEvaluation) {
-        // Intégration doit être complétée avant de commencer l'Évaluation
-        btnStartEvaluation.disabled = !progression.integration_unite.complete;
+        btnShowIntegrationForm.disabled = !progression.formation_initiale.complete || 
+                                      (progression.modules && progression.modules.liste && 
+                                       progression.modules.liste.length > 0 && !progression.modules.complete);
     }
 }
 
