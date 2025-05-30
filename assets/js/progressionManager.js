@@ -346,17 +346,33 @@ function setupProgressionButtons(soldier) {
                 units.forEach(unit => {
                     // Vérifier si c'est une escouade (type = 'escouade')
                     if (unit.type === 'escouade') {
-                        const chef = chefsEscouade[unit.id];
-                        const effectifActuel = effectifs[unit.id] || 0;
-
-                        // Ajouter seulement si l'escouade a un chef et n'est pas pleine
-                        if (chef && effectifActuel < unit.effectif_max) {
+                        // Utiliser id_unite pour la compatibilité avec le format JSON
+                        const unitId = unit.id_unite || unit.id;
+                        const chef = chefsEscouade[unitId];
+                        const effectifActuel = effectifs[unitId] || 0;
+                        const capaciteMax = unit.capacite_max || unit.effectif_max || 8;
+                        
+                        // Déboguer les escouades et les chefs
+                        console.log(`Escouade: ${unit.nom}, ID: ${unitId}, Chef: ${chef ? chef.pseudo : 'Aucun'}, Effectif: ${effectifActuel}/${capaciteMax}`);
+                        
+                        // Ajouter l'escouade même si elle n'a pas encore de chef (pour le développement)
+                        // En production, décommenter la condition pour vérifier la présence d'un chef
+                        // if (chef && effectifActuel < capaciteMax) {
+                        if (effectifActuel < capaciteMax) {
                             const option = document.createElement('option');
-                            option.value = unit.id;
-                            option.textContent = `${unit.nom} (${effectifActuel}/${unit.effectif_max})`;
-                            // Stocker l'ID du chef dans un attribut data
-                            option.dataset.chefId = chef.id;
-                            option.dataset.chefNom = `${chef.grade} ${chef.pseudo}`;
+                            option.value = unitId;
+                            option.textContent = `${unit.nom} (${effectifActuel}/${capaciteMax})`;
+                            
+                            // Si un chef existe, stocker ses informations
+                            if (chef) {
+                                option.dataset.chefId = chef.id;
+                                option.dataset.chefNom = `${chef.grade} ${chef.pseudo}`;
+                            } else {
+                                // Si pas de chef, indiquer que le commandant sera le parrain par défaut
+                                option.dataset.chefId = "commandant";
+                                option.dataset.chefNom = "Commandant (par défaut)";
+                            }
+                            
                             selectEscouadeProvisoire.appendChild(option);
                         }
                     }

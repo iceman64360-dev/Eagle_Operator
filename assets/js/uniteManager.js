@@ -886,10 +886,58 @@ document.addEventListener('DOMContentLoaded', () => {
                                     };
                                     
                                     // Mettre à jour l'unité du soldat
-                                    recruit.unité = selectedUnit.nom;
+                                    recruit.unité = selectedUnit.id_unite; // Utiliser l'ID de l'unité au lieu du nom
                                     
-                                    // Sauvegarder les modifications des soldats
-                                    localStorage.setItem('eagle_soldiers', JSON.stringify(allSoldiers));
+                                    // Si c'est une recrue, mettre à jour sa progression
+                                    if (recruit.statut && recruit.statut.toLowerCase() === 'recrue') {
+                                        // Initialiser la progression si nécessaire
+                                        if (!recruit.progression_recrue) {
+                                            recruit.progression_recrue = {
+                                                formation_initiale: {
+                                                    complete: false,
+                                                    date_debut: new Date().toISOString().split('T')[0],
+                                                    date_fin: null,
+                                                    escouade_provisoire: selectedUnit.id_unite,
+                                                    parrain: null
+                                                },
+                                                modules: {
+                                                    complete: false,
+                                                    modules_valides: []
+                                                },
+                                                integration: {
+                                                    complete: false,
+                                                    date_debut: null,
+                                                    date_fin: null,
+                                                    unite: null
+                                                }
+                                            };
+                                        } else {
+                                            // Mettre à jour l'escouade provisoire dans la progression
+                                            recruit.progression_recrue.formation_initiale.escouade_provisoire = selectedUnit.id_unite;
+                                        }
+                                        
+                                        // Trouver le chef d'escouade pour le désigner comme parrain
+                                        const chefEscouade = allSoldiers.find(s => 
+                                            s.unité === selectedUnit.id_unite && 
+                                            s.statut === 'Actif' && 
+                                            (s.grade === 'Sergent' || s.grade === 'Sergent-Chef' || s.grade === 'Caporal-Chef')
+                                        );
+                                        
+                                        if (chefEscouade) {
+                                            recruit.progression_recrue.formation_initiale.parrain = chefEscouade.id;
+                                        }
+                                        
+                                        // Ajouter un événement dans l'historique
+                                        if (!recruit.historique) recruit.historique = [];
+                                        recruit.historique.push({
+                                            date: new Date().toISOString().split('T')[0],
+                                            type: 'affectation',
+                                            description: `Affectation à l'escouade ${selectedUnit.nom}`
+                                        });
+                                    }
+                                    
+                                    // Sauvegarder les modifications des soldats (utiliser la clé harmonisée)
+                                    localStorage.setItem('eagleOperator_soldiers', JSON.stringify(allSoldiers));
                                     
                                     // Sauvegarder et rafraîchir
                                     saveUnitsToStorage();
