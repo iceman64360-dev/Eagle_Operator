@@ -56,32 +56,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchSoldiers() {
         try {
-            // Charger les données depuis l'API du serveur
-            const response = await fetch('/api/soldiers');
+            // En environnement GitHub Pages, charger directement le fichier JSON statique
+            const response = await fetch('./data/soldiers.json');
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const soldiers = await response.json();
-            
-            // Si aucun soldat n'est trouvé sur le serveur, essayer de charger le fichier JSON initial
-            if (Array.isArray(soldiers) && soldiers.length === 0) {
-                console.log('Aucun soldat trouvé sur le serveur, chargement du fichier JSON initial...');
-                const initialResponse = await fetch('../data/soldiers.json');
-                
-                if (!initialResponse.ok) {
-                    throw new Error(`HTTP error! status: ${initialResponse.status}`);
-                }
-                
-                const initialSoldiers = await initialResponse.json();
-                allSoldiersData = initialSoldiers;
-                
-                // Sauvegarder les données initiales sur le serveur
-                await saveSoldiersToStorage();
-            } else {
-                allSoldiersData = soldiers;
-            }
+            allSoldiersData = soldiers;
             
             // Afficher les données
             populateFilters(allSoldiersData);
