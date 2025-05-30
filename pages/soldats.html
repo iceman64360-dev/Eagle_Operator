@@ -192,16 +192,34 @@
                                             <div class="step-line"></div>
                                         </div>
                                         <div class="step-content">
-                                            <h4>Formation Initiale (2 semaines)</h4>
+                                            <h4>Incorporation et Intégration Provisoire</h4>
                                             <div class="step-details">
                                                 <p><strong>Statut:</strong> <span id="formation-initiale-status">Non commencé</span></p>
-                                                <p><strong>Date de début:</strong> <span id="formation-initiale-debut">-</span></p>
-                                                <p><strong>Date de fin prévue:</strong> <span id="formation-initiale-fin-prevue">-</span></p>
-                                                <p><strong>Date de fin réelle:</strong> <span id="formation-initiale-fin">-</span></p>
-                                                <p><strong>Note:</strong> <span id="formation-initiale-note">-</span></p>
+                                                <p><strong>Date d'incorporation:</strong> <span id="formation-initiale-debut">-</span></p>
+                                                <p><strong>Escouade provisoire:</strong> <span id="formation-initiale-escouade">-</span></p>
+                                                <p><strong>Parrain (Chef d'escouade):</strong> <span id="formation-initiale-parrain">-</span></p>
+                                                
+                                                <div id="incorporation-form" class="incorporation-form hidden-element">
+                                                    <div class="form-group">
+                                                        <label for="select-escouade-provisoire">Escouade provisoire:</label>
+                                                        <select id="select-escouade-provisoire" class="form-control">
+                                                            <option value="">-- Sélectionner une escouade --</option>
+                                                            <!-- Les escouades seront ajoutées dynamiquement -->
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="select-parrain">Parrain (Chef d'escouade):</label>
+                                                        <select id="select-parrain" class="form-control">
+                                                            <option value="">-- Sélectionner un parrain --</option>
+                                                            <!-- Les parrains seront ajoutés dynamiquement -->
+                                                        </select>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="step-actions">
-                                                <button class="action-btn" id="btn-complete-formation-initiale">Marquer comme terminé</button>
+                                                <button class="action-btn" id="btn-show-incorporation-form">Incorporer la recrue</button>
+                                                <button class="action-btn hidden-element" id="btn-complete-incorporation">Confirmer l'incorporation</button>
+                                                <button class="action-btn hidden-element" id="btn-cancel-incorporation">Annuler</button>
                                             </div>
                                         </div>
                                     </div>

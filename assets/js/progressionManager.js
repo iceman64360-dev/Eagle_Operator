@@ -30,7 +30,8 @@ function updateProgressionDisplay(soldier) {
             complete: false,
             date_debut: new Date().toISOString().split('T')[0],
             date_fin: null,
-            note: null
+            escouade_provisoire: null,
+            parrain: null
         };
     }
     
@@ -71,12 +72,32 @@ function updateProgressionDisplay(soldier) {
     let completedSteps = 0;
     const totalSteps = 4; // Nombre total d'étapes
     
-    // Formation Initiale (2 semaines)
+    // Incorporation et Intégration Provisoire
     const stepFormationInitiale = document.getElementById('step-formation-initiale');
     updateStepStatus(stepFormationInitiale, progression.formation_initiale);
-    document.getElementById('formation-initiale-status').textContent = getStatusText(progression.formation_initiale);
-    document.getElementById('formation-initiale-debut').textContent = progression.formation_initiale.date_debut || '-';
-    document.getElementById('formation-initiale-fin').textContent = progression.formation_initiale.date_fin || '-';
+    
+    // Mettre à jour les informations d'incorporation
+    const statusElement = document.getElementById('formation-initiale-status');
+    if (statusElement) {
+        statusElement.textContent = getStatusText(progression.formation_initiale);
+    }
+    
+    const debutElement = document.getElementById('formation-initiale-debut');
+    if (debutElement) {
+        debutElement.textContent = progression.formation_initiale.date_debut || '-';
+    }
+    
+    const escouadeElement = document.getElementById('formation-initiale-escouade');
+    if (escouadeElement) {
+        escouadeElement.textContent = progression.formation_initiale.escouade_provisoire || '-';
+    }
+    
+    const parrainElement = document.getElementById('formation-initiale-parrain');
+    if (parrainElement) {
+        parrainElement.textContent = progression.formation_initiale.parrain || '-';
+    }
+    
+    if (progression.formation_initiale.complete) completedSteps++;
     
     // Calculer la date de fin prévue (2 semaines après la date de début)
     if (progression.formation_initiale.date_debut) {
@@ -253,9 +274,9 @@ function completeModule(soldier, moduleId) {
 // Configurer les boutons pour les actions de progression
 function setupProgressionButtons(soldier) {
     if (!soldier || !soldier.progression_recrue) return;
-    
+
     const progression = soldier.progression_recrue;
-    
+
     // Bouton pour terminer la formation initiale
     const btnCompleteFormationInitiale = document.getElementById('btn-complete-formation-initiale');
     if (btnCompleteFormationInitiale) {
@@ -264,12 +285,178 @@ function setupProgressionButtons(soldier) {
             progression.formation_initiale.date_fin = new Date().toISOString().split('T')[0];
             updateProgressionDisplay(soldier);
             saveSoldiersToStorage();
-            
+
             progression.modules.complete = true;
             saveSoldiersToStorage();
             updateProgressionDisplay(soldier);
         };
     }
+
+    // Boutons pour l'incorporation
+    const btnShowIncorporationForm = document.getElementById('btn-show-incorporation-form');
+    const incorporationForm = document.getElementById('incorporation-form');
+    const btnCompleteIncorporation = document.getElementById('btn-complete-incorporation');
+    const btnCancelIncorporation = document.getElementById('btn-cancel-incorporation');
+    const selectEscouadeProvisoire = document.getElementById('select-escouade-provisoire');
+    const selectParrain = document.getElementById('select-parrain');
+
+    // Charger les escouades disponibles pour l'incorporation
+    function loadAvailableEscouades() {
+        // Vider le sélecteur d'escouades
+        if (selectEscouadeProvisoire) {
+            selectEscouadeProvisoire.innerHTML = '<option value="">-- Sélectionner une escouade --</option>';
+
+            // Charger les unités depuis le localStorage
+            let units = [];
+            const unitsData = localStorage.getItem('eagleOperator_units');
+            if (unitsData) {
+                units = JSON.parse(unitsData);
+
+                // Ajouter toutes les escouades qui ont un chef
+                units.forEach(unit => {
+                    // Vérifier si l'unité a un chef
+                    const hasChef = allSoldiersData.some(s => 
+                        s.unité === unit.id && 
+                        s.statut === 'Actif' && 
+                        (s.grade === 'Sergent' || s.grade === 'Sergent-Chef' || s.grade === 'Caporal-Chef')
+                    );
+
+                    if (hasChef) {
+                        const option = document.createElement('option');
+                        option.value = unit.id;
+                        option.textContent = unit.nom;
+                        selectEscouadeProvisoire.appendChild(option);
+                    }
+                });
+            }
+        }
+    }
+
+    // Charger les parrains disponibles pour l'escouade sélectionnée
+    function loadAvailableParrains(escouadeId) {
+        if (selectParrain) {
+            selectParrain.innerHTML = '<option value="">-- Sélectionner un parrain --</option>';
+
+            if (!escouadeId) return;
+
+            // Trouver les soldats qui peuvent être parrains dans cette escouade
+            const parrains = allSoldiersData.filter(s => 
+                s.unité === escouadeId && 
+                s.statut === 'Actif' && 
+                (s.grade === 'Sergent' || s.grade === 'Sergent-Chef' || s.grade === 'Caporal-Chef')
+            );
+
+            parrains.forEach(parrain => {
+                const option = document.createElement('option');
+                option.value = parrain.id;
+                option.textContent = `${parrain.grade} ${parrain.pseudo}`;
+                selectParrain.appendChild(option);
+            });
+        }
+    }
+
+    // Afficher le formulaire d'incorporation
+    if (btnShowIncorporationForm) {
+        btnShowIncorporationForm.onclick = () => {
+            // Afficher le formulaire
+            if (incorporationForm) {
+                incorporationForm.classList.remove('hidden-element');
+            }
+            btnShowIncorporationForm.classList.add('hidden-element');
+            if (btnCompleteIncorporation) {
+                btnCompleteIncorporation.classList.remove('hidden-element');
+            }
+            if (btnCancelIncorporation) {
+                btnCancelIncorporation.classList.remove('hidden-element');
+            }
+
+            // Charger les escouades disponibles
+            loadAvailableEscouades();
+
+            // Ajouter un écouteur d'événement pour le changement d'escouade
+            if (selectEscouadeProvisoire) {
+                selectEscouadeProvisoire.addEventListener('change', () => {
+                    loadAvailableParrains(selectEscouadeProvisoire.value);
+                });
+            }
+        };
+    }
+
+    // Annuler l'incorporation
+    if (btnCancelIncorporation) {
+        btnCancelIncorporation.onclick = () => {
+            // Cacher le formulaire
+            if (incorporationForm) {
+                incorporationForm.classList.add('hidden-element');
+            }
+            btnShowIncorporationForm.classList.remove('hidden-element');
+            if (btnCompleteIncorporation) {
+                btnCompleteIncorporation.classList.add('hidden-element');
+            }
+            btnCancelIncorporation.classList.add('hidden-element');
+        };
+    }
+
+    // Confirmer l'incorporation
+    if (btnCompleteIncorporation) {
+        btnCompleteIncorporation.onclick = () => {
+            if (!selectEscouadeProvisoire || !selectParrain) return;
+
+            const selectedEscouade = selectEscouadeProvisoire.value;
+            const selectedParrain = selectParrain.value;
+
+            if (!selectedEscouade || !selectedParrain) {
+                alert('Veuillez sélectionner une escouade et un parrain.');
+                return;
+            }
+
+            // Mettre à jour la progression
+            progression.formation_initiale.complete = true;
+            progression.formation_initiale.date_fin = new Date().toISOString().split('T')[0];
+            progression.formation_initiale.escouade_provisoire = selectedEscouade;
+            progression.formation_initiale.parrain = selectedParrain;
+
+            // Trouver le nom de l'escouade et du parrain pour l'historique
+            let escouadeNom = selectedEscouade;
+            let parrainNom = selectedParrain;
+
+            const units = JSON.parse(localStorage.getItem('eagleOperator_units') || '[]');
+            const escouade = units.find(u => u.id === selectedEscouade);
+            if (escouade) {
+                escouadeNom = escouade.nom;
+            }
+
+            const parrain = allSoldiersData.find(s => s.id === selectedParrain);
+            if (parrain) {
+                parrainNom = `${parrain.grade} ${parrain.pseudo}`;
+            }
+
+            // Ajouter un événement dans l'historique
+            if (!soldier.historique) soldier.historique = [];
+            soldier.historique.push({
+                date: new Date().toISOString().split('T')[0],
+                type: 'incorporation',
+                description: `Incorporation et intégration provisoire à l'escouade ${escouadeNom} sous la supervision de ${parrainNom}`
+            });
+
+            // Sauvegarder les changements
+            saveSoldiersToStorage();
+
+            // Mettre à jour l'affichage
+            updateProgressionDisplay(soldier);
+
+            // Cacher le formulaire
+            if (incorporationForm) {
+                incorporationForm.classList.add('hidden-element');
+            }
+            btnShowIncorporationForm.classList.add('hidden-element');
+            if (btnCompleteIncorporation) {
+                btnCompleteIncorporation.classList.add('hidden-element');
+            }
+            btnCancelIncorporation.classList.add('hidden-element');
+        };
+    }
+
     
     // Configurer les gestionnaires d'événements pour les modules
     // Utiliser la délégation d'événements pour gérer les boutons des modules
@@ -319,12 +506,12 @@ function setupProgressionButtons(soldier) {
     const btnCancelIntegration = document.getElementById('btn-cancel-integration');
     const selectUnite = document.getElementById('select-unite');
     
-    // Charger les unités disponibles
+    // Charger les unités disponibles pour l'intégration finale
     function loadAvailableUnits() {
         // Vider le sélecteur d'unités
         selectUnite.innerHTML = '<option value="">-- Sélectionner une escouade --</option>';
         
-        // Charger les unités depuis le localStorage ou le fichier JSON
+        // Charger les unités depuis le localStorage
         let units = [];
         const unitsData = localStorage.getItem('eagleOperator_units');
         if (unitsData) {
@@ -354,10 +541,22 @@ function setupProgressionButtons(soldier) {
             }
         });
         
-        // Ajouter uniquement les unités qui ont de la place
+        // Identifier les escouades qui ont un chef
+        const escouadesAvecChef = {};
+        allSoldiersData.forEach(s => {
+            if (s.unité && s.statut === 'Actif' && 
+                (s.grade === 'Sergent' || s.grade === 'Sergent-Chef' || s.grade === 'Caporal-Chef')) {
+                escouadesAvecChef[s.unité] = true;
+            }
+        });
+        
+        // Ajouter uniquement les unités qui ont de la place ET qui ont un chef
         units.forEach(unit => {
             const effectifActuel = effectifs[unit.id] || 0;
-            if (effectifActuel < unit.effectif_max) {
+            const hasChef = escouadesAvecChef[unit.id] || false;
+            
+            // N'ajouter que les escouades qui ont un chef et qui ne sont pas pleines
+            if (hasChef && effectifActuel < unit.effectif_max) {
                 const option = document.createElement('option');
                 option.value = unit.id;
                 option.textContent = `${unit.nom} (${effectifActuel}/${unit.effectif_max})`;
