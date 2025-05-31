@@ -1,10 +1,69 @@
 /* CSS pour la page dossier-soldat.html */
 
+/* Variables CSS pour les couleurs et styles */
+:root {
+    --gold: #ffbf00;
+    --dark-gold: #cc9900;
+    --light-gold: #ffe066;
+    --dark-bg: #1a1a1a;
+    --medium-bg: #2a2a2a;
+    --light-bg: #3a3a3a;
+    --text-color: #e0e0e0;
+    --success: #28a745;
+    --danger: #dc3545;
+    --warning: #fd7e14;
+    --info: #17a2b8;
+    --combat: #dc3545;
+    --tactique: #6f42c1;
+    --medical: #28a745;
+    --technique: #17a2b8;
+    --leadership: #fd7e14;
+}
+
 /* Styles pour les onglets de formations */
 .formations-tabs {
     display: flex;
     margin-bottom: 15px;
-    border-bottom: 1px solid var(--gold);
+    border-bottom: 2px solid var(--medium-bg);
+}
+
+.formations-tab-btn {
+    padding: 8px 15px;
+    background-color: var(--medium-bg);
+    color: var(--text-color);
+    border: none;
+    border-radius: 5px 5px 0 0;
+    margin-right: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.formations-tab-btn:hover {
+    background-color: var(--light-bg);
+}
+
+.formations-tab-btn.active {
+    background-color: var(--gold);
+    color: var(--dark-bg);
+    font-weight: bold;
+}
+
+.formations-tab-content {
+    margin-top: 15px;
+}
+
+.formations-tab-pane {
+    display: none;
+}
+
+.formations-tab-pane.active {
+    display: block;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .formation-tab-button {
@@ -46,110 +105,203 @@
 }
 
 /* Styles pour les listes de formations */
-.formation-item {
+
+.empty-state {
+    padding: 20px;
+    text-align: center;
+    background-color: var(--medium-bg);
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.empty-state p {
+    color: var(--text-color);
+    font-style: italic;
+    margin: 0;
+}
+/* Styles pour les cartes de formation */
+.formation-card {
+    background-color: var(--medium-bg);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.formation-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.formation-card-header {
+    padding: 12px;
+    background-color: var(--light-bg);
+    border-bottom: 2px solid var(--gold);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
-    margin-bottom: 10px;
-    background-color: var(--medium-bg);
-    border-radius: 5px;
-    border-left: 3px solid var(--gold);
 }
 
-.formation-item:hover {
-    background-color: var(--dark-bg);
+.formation-card-header h3 {
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    color: var(--gold);
 }
 
-.formation-info {
-    flex-grow: 1;
-}
-
-.formation-title {
+.formation-type-badge {
+    padding: 3px 8px;
+    border-radius: 15px;
+    font-size: 0.8rem;
     font-weight: bold;
-    margin-bottom: 5px;
+    text-transform: uppercase;
+    color: white;
 }
 
-.formation-date {
-    font-size: 0.9rem;
-    color: #aaa;
+.formation-type-badge.combat {
+    background-color: var(--combat);
 }
 
-.formation-status {
+.formation-type-badge.tactique {
+    background-color: var(--tactique);
+}
+
+.formation-type-badge.medical {
+    background-color: var(--medical);
+}
+
+.formation-type-badge.technique {
+    background-color: var(--technique);
+}
+
+.formation-type-badge.leadership {
+    background-color: var(--leadership);
+}
+
+.formation-card-body {
+    padding: 12px;
+    flex-grow: 1;
     display: flex;
-    gap: 10px;
+    flex-direction: column;
 }
 
+.formation-description {
+    margin-bottom: 12px;
+    flex-grow: 1;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    overflow: auto;
+    max-height: 100px;
+    line-height: 1.4;
+}
+
+.formation-metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    margin-top: auto;
+    border-top: 1px solid var(--light-bg);
+    padding-top: 10px;
+}
+
+.formation-metadata-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.metadata-label {
+    font-weight: bold;
+    color: var(--gold);
+    min-width: 80px;
+}
+
+.metadata-value {
+    flex: 1;
+}
+
+.formation-card-footer {
+    padding: 8px 12px;
+    background-color: var(--light-bg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--medium-bg);
+    gap: 8px;
+}
+
+/* Styles pour les badges de statut */
 .formation-status-badge {
     padding: 3px 8px;
     border-radius: 3px;
     font-size: 0.8rem;
     font-weight: bold;
+    color: white;
 }
 
-.status-assigned {
+.status-info {
     background-color: var(--info);
 }
 
-.status-completed {
+.status-success {
     background-color: var(--success);
 }
 
-.status-failed {
+.status-danger {
     background-color: var(--danger);
 }
 
-.status-absent {
+.status-warning {
     background-color: var(--warning);
 }
 
-.formation-actions {
-    display: flex;
-    gap: 5px;
-}
-
-.formation-action-btn {
+/* Styles pour les boutons d'action */
+.military-btn {
     background-color: var(--medium-bg);
     border: 1px solid var(--gold);
     color: var(--gold);
-    padding: 3px 8px;
+    padding: 5px 10px;
     border-radius: 3px;
     cursor: pointer;
     font-size: 0.8rem;
     transition: all 0.2s ease;
+    font-weight: bold;
 }
 
-.formation-action-btn:hover {
+.military-btn:hover {
     background-color: var(--gold);
     color: var(--dark-bg);
 }
 
-.formation-action-btn.validate {
+.gold-btn {
     border-color: var(--success);
     color: var(--success);
 }
 
-.formation-action-btn.validate:hover {
+.gold-btn:hover {
     background-color: var(--success);
     color: white;
 }
 
-.formation-action-btn.fail {
+.fail {
     border-color: var(--danger);
     color: var(--danger);
 }
 
-.formation-action-btn.fail:hover {
+.fail:hover {
     background-color: var(--danger);
     color: white;
 }
 
-.formation-action-btn.absent {
+.absent {
     border-color: var(--warning);
     color: var(--warning);
 }
 
-.formation-action-btn.absent:hover {
+.absent:hover {
     background-color: var(--warning);
     color: var(--dark-bg);
 }

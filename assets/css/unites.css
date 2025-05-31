@@ -795,6 +795,218 @@
     font-style: italic;
     font-size: 0.9em;
 }
+
+/* Styles pour la modale d'affectation d'opérateurs */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(3px);
+}
+
+.modal-content {
+    background-color: #23272a;
+    margin: 5% auto;
+    padding: 0;
+    border: 2px solid #ffbf00;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 800px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    animation: modalFadeIn 0.3s;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    padding: 15px 20px;
+    background-color: #1c1e22;
+    border-bottom: 2px solid #ffbf00;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px 8px 0 0;
+}
+
+.modal-header h2 {
+    color: #ffbf00;
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.5em;
+}
+
+.close {
+    color: #ffbf00;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close:hover,
+.close:focus {
+    color: #fff;
+    text-decoration: none;
+}
+
+.modal-body {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.search-filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.search-container {
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #ffbf00;
+    border-radius: 5px;
+    background-color: #1c1e22;
+    color: #fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1em;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #ffd700;
+    box-shadow: 0 0 8px rgba(255, 191, 0, 0.5);
+}
+
+.soldiers-list-container h3 {
+    color: #ffbf00;
+    font-family: 'Orbitron', sans-serif;
+    margin-top: 0;
+    border-bottom: 1px solid #ffbf00;
+    padding-bottom: 8px;
+}
+
+.scrollable-list {
+    max-height: 40vh;
+    overflow-y: auto;
+    border: 1px solid #333;
+    border-radius: 5px;
+    padding: 10px;
+    background-color: #1c1e22;
+}
+
+.soldier-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #333;
+    transition: background-color 0.2s;
+}
+
+.soldier-item:last-child {
+    border-bottom: none;
+}
+
+.soldier-item:hover {
+    background-color: #2c3034;
+}
+
+.soldier-checkbox {
+    margin-right: 15px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    accent-color: #ffbf00;
+}
+
+.soldier-info {
+    flex: 1;
+}
+
+.soldier-name {
+    font-weight: bold;
+    color: #fff;
+    font-size: 1.1em;
+    margin-bottom: 5px;
+}
+
+.soldier-details {
+    color: #ccc;
+    font-size: 0.9em;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    background-color: #1c1e22;
+    border-top: 1px solid #333;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    border-radius: 0 0 8px 8px;
+}
+
+.btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background-color: #ffbf00;
+    color: #000;
+}
+
+.btn-primary:hover {
+    background-color: #ffd700;
+}
+
+.btn-primary:disabled {
+    background-color: #665000;
+    color: #aaa;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-secondary {
+    background-color: #333;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #444;
+}
+
+.no-results {
+    text-align: center;
+    color: #888;
+    font-style: italic;
+    padding: 20px 0;
+}
 #unitTree {
     font-family: 'Orbitron', sans-serif;
     color: #E0E0E0;

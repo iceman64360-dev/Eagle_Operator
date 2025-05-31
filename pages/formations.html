@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../assets/css/style.css"> <!-- Styles globaux -->
     <link rel="stylesheet" href="../assets/css/formations.css"> <!-- Styles spécifiques aux formations -->
     <link rel="stylesheet" href="../assets/css/modal-buttons.css"> <!-- Styles pour les boutons de fermeture -->
+    <link rel="stylesheet" href="../assets/css/notifications.css"> <!-- Styles pour les notifications -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -155,18 +156,6 @@
                     <div class="search-filter-container">
                         <input type="text" id="soldier-search" class="military-input" placeholder="Rechercher un soldat...">
                         <div class="filter-row">
-                            <select id="soldier-filter" class="military-select" aria-label="Filtrer les soldats" title="Filtrer les soldats">
-                                <option value="all">Tous les soldats</option>
-                                <option value="available">Disponibles uniquement</option>
-                                <option value="eligible">Éligibles uniquement</option>
-                            </select>
-                            <select id="status-filter" class="military-select" aria-label="Filtrer par statut" title="Filtrer par statut">
-                                <option value="active" selected>Soldats actifs uniquement</option>
-                                <option value="inactive">Soldats inactifs uniquement</option>
-                                <option value="all">Tous les statuts</option>
-                            </select>
-                        </div>
-                        <div class="filter-row">
                             <select id="unit-filter" class="military-select" aria-label="Filtrer par unité" title="Filtrer par unité">
                                 <option value="all">Toutes les unités</option>
                                 <!-- Les options d'unités seront générées dynamiquement -->
@@ -174,25 +163,11 @@
                             <div id="selected-unit-name" class="selected-unit">Toutes les unités</div>
                         </div>
                     </div>
-                    <div class="assignment-tabs">
-                        <div class="tab active" data-tab="soldiers">Soldats</div>
-                        <div class="tab" data-tab="units">Unités</div>
+                    <div class="results-counter">
+                        <span id="filtered-soldiers-count">0 soldat(s) trouvé(s)</span>
                     </div>
-                    <div class="tab-content active" id="soldiers-tab">
-                        <div class="results-counter">
-                            <span id="filtered-soldiers-count">0 soldat(s) trouvé(s)</span>
-                        </div>
-                        <div class="soldiers-list" id="assignable-soldiers-list">
-                            <!-- Liste des soldats générée dynamiquement -->
-                        </div>
-                    </div>
-                    <div class="tab-content" id="units-tab">
-                        <div class="units-list" id="assignable-units-list">
-                            <!-- Liste des unités générée dynamiquement -->
-                        </div>
-                        <div class="unit-soldiers-list" id="unit-soldiers-list">
-                            <!-- Liste des soldats de l'unité sélectionnée -->
-                        </div>
+                    <div class="soldiers-list" id="assignable-soldiers-list">
+                        <!-- Liste des soldats générée dynamiquement -->
                     </div>
                     <div class="assign-actions">
                         <button type="button" id="cancel-assign" class="military-btn cancel-btn">Annuler</button>

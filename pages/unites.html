@@ -50,6 +50,31 @@
         <p>&copy; 2025 Eagle Company - Tous droits réservés.</p>
     </footer>
 
-    <script src="../assets/js/uniteManager.js"></script>
+    <!-- Modale d'affectation d'opérateurs à une unité -->
+    <div id="assignSoldiersModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Affecter un opérateur à <span id="unit-name-title"></span></h2>
+                <span class="close" id="closeAssignModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="search-filter-container">
+                    <div class="search-container">
+                        <input type="text" id="soldier-search" placeholder="Rechercher un soldat..." class="search-input">
+                    </div>
+                </div>
+                <div class="soldiers-list-container">
+                    <h3>Soldats disponibles (<span id="soldiers-count">0</span>)</h3>
+                    <div id="assignable-soldiers-list" class="scrollable-list"></div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancelAssignBtn" class="btn btn-secondary">Annuler</button>
+                    <button id="confirmAssignBtn" class="btn btn-primary" disabled>Confirmer (<span id="selected-count">0</span>)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/uniteManager.js?v=1.1"></script>
 </body>
 </html>

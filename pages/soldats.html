@@ -136,12 +136,32 @@
                         
                         <!-- Onglet Formations -->
                         <div class="tab-pane" id="training-tab">
-                            <h3>Formations Complétées</h3>
-                            <div class="training-list">
-                                <p class="placeholder-text">Aucune formation enregistrée pour ce soldat.</p>
-                                <ul id="training-list" class="badge-list">
-                                    <!-- Les formations seront ajoutées ici dynamiquement -->
-                                </ul>
+                            <div class="formations-tabs">
+                                <button class="formations-tab-btn active" data-tab="assigned">Assignées</button>
+                                <button class="formations-tab-btn" data-tab="completed">Validées</button>
+                                <button class="formations-tab-btn" data-tab="failed">Échouées/Absences</button>
+                            </div>
+                            <div class="formations-tab-content">
+                                <!-- Formations assignées -->
+                                <div class="formations-tab-pane active" id="formations-assigned-tab">
+                                    <div id="formations-assigned-list" class="formations-list">
+                                        <!-- Les formations assignées seront ajoutées ici dynamiquement -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Formations validées -->
+                                <div class="formations-tab-pane" id="formations-completed-tab">
+                                    <div id="formations-completed-list" class="formations-list">
+                                        <!-- Les formations validées seront ajoutées ici dynamiquement -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Formations échouées ou absences -->
+                                <div class="formations-tab-pane" id="formations-failed-tab">
+                                    <div id="formations-failed-list" class="formations-list">
+                                        <!-- Les formations échouées seront ajoutées ici dynamiquement -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
