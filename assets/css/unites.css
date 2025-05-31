@@ -742,6 +742,46 @@
     }
 }
 
+/* Styles pour les sélecteurs et boutons dans le tableau de personnel */
+.status-select, .role-select {
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+    width: 100%;
+    max-width: 120px;
+}
+
+.remove-btn {
+    padding: 4px 8px;
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.remove-btn:hover {
+    background-color: #ff0000;
+}
+
+/* Styles pour le sélecteur de rôle dans la modale d'assignation */
+.role-container {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.role-container label {
+    margin-right: 8px;
+    font-weight: bold;
+}
+
+.role-select {
+    flex: 1;
+}
+
 /* Personnel Table Styling */
 .personnel-table {
     width: 100%;

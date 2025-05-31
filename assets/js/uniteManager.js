@@ -814,11 +814,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 const table = document.createElement('table');
                 table.className = 'personnel-table';
                 table.innerHTML = `
-                    <thead><tr><th>Pseudo</th><th>Grade</th><th>Statut</th></tr></thead>
+                    <thead><tr><th>Pseudo</th><th>Grade</th><th>Statut</th><th>Rôle</th><th>Actions</th></tr></thead>
                     <tbody>
-                        ${allPersonnel.map(soldier => `
-                            <tr><td>${soldier.pseudo}</td><td>${soldier.grade}</td><td>${soldier.statut}</td></tr>
-                        `).join('')}
+                        ${allPersonnel.map(soldier => {
+                            // Vérifier si le soldat a un rôle assigné
+                            const role = soldier.role || 'Opérateur';
+                            
+                            // Créer les options pour le sélecteur de statut
+                            const statusOptions = ['Actif', 'En formation', 'En mission', 'En congé', 'Blessé', 'Inactif']
+                                .map(status => `<option value="${status}" ${soldier.statut === status ? 'selected' : ''}>${status}</option>`)
+                                .join('');
+                            
+                            // Créer les options pour le sélecteur de rôle
+                            const roleOptions = ['Opérateur', 'Médecin', 'Ingénieur', 'Éclaireur', 'Sniper', 'Grenadier', 'Mitrailleur', 'Pilote', 'Autre']
+                                .map(r => `<option value="${r}" ${role === r ? 'selected' : ''}>${r}</option>`)
+                                .join('');
+                            
+                            return `
+                            <tr data-soldier-id="${soldier.id}">
+                                <td>${soldier.pseudo}</td>
+                                <td>${soldier.grade}</td>
+                                <td>
+                                    <select class="status-select" data-soldier-id="${soldier.id}" onchange="updateSoldierStatus(this.value, '${soldier.id}')">
+                                        ${statusOptions}
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="role-select" data-soldier-id="${soldier.id}" onchange="updateSoldierRole(this.value, '${soldier.id}')">
+                                        ${roleOptions}
+                                    </select>
+                                </td>
+                                <td>
+                                    <button class="remove-btn" onclick="removeSoldierFromUnit('${soldier.id}', '${selectedUnit.id_unite}')">Retirer</button>
+                                </td>
+                            </tr>
+                            `;
+                        }).join('')}
                     </tbody>
                 `;
                 personnelEncart.appendChild(table);

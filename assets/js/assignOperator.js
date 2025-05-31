@@ -279,10 +279,16 @@ function createSoldierItemForAssignment(soldier) {
         checkbox.onchange = function() {
             if (this.checked) {
                 if (!selectedOperators.includes(soldier.id)) {
-                    selectedOperators.push(soldier.id);
+                    // Ajouter le soldat avec son rôle par défaut
+                    const roleSelect = document.getElementById('role-select-' + soldier.id);
+                    const role = roleSelect ? roleSelect.value : 'Opérateur';
+                    selectedOperators.push({
+                        id: soldier.id,
+                        role: role
+                    });
                 }
             } else {
-                const index = selectedOperators.indexOf(soldier.id);
+                const index = selectedOperators.findIndex(op => op.id === soldier.id);
                 if (index !== -1) {
                     selectedOperators.splice(index, 1);
                 }
@@ -301,9 +307,44 @@ function createSoldierItemForAssignment(soldier) {
             </div>
         `;
         
+        // Créer le sélecteur de rôle
+        const roleContainer = document.createElement('div');
+        roleContainer.className = 'role-container';
+        
+        const roleLabel = document.createElement('label');
+        roleLabel.textContent = 'Rôle: ';
+        roleLabel.htmlFor = 'role-select-' + soldier.id;
+        
+        const roleSelect = document.createElement('select');
+        roleSelect.id = 'role-select-' + soldier.id;
+        roleSelect.className = 'role-select';
+        roleSelect.innerHTML = `
+            <option value="Opérateur">Opérateur</option>
+            <option value="Médecin">Médecin</option>
+            <option value="Ingénieur">Ingénieur</option>
+            <option value="Éclaireur">Éclaireur</option>
+            <option value="Sniper">Sniper</option>
+            <option value="Grenadier">Grenadier</option>
+            <option value="Mitrailleur">Mitrailleur</option>
+            <option value="Pilote">Pilote</option>
+            <option value="Autre">Autre</option>
+        `;
+        
+        roleSelect.onchange = function() {
+            // Mettre à jour le rôle dans la liste des opérateurs sélectionnés
+            const index = selectedOperators.findIndex(op => op.id === soldier.id);
+            if (index !== -1) {
+                selectedOperators[index].role = this.value;
+            }
+        };
+        
+        roleContainer.appendChild(roleLabel);
+        roleContainer.appendChild(roleSelect);
+        
         // Assembler l'élément
         item.appendChild(checkbox);
         item.appendChild(soldierInfo);
+        item.appendChild(roleContainer);
         
         return item;
     } catch (error) {
@@ -357,11 +398,28 @@ function assignSelectedOperators() {
         }
         
         // Assigner chaque soldat sélectionné à l'unité
-        selectedOperators.forEach(soldierId => {
+        selectedOperators.forEach(operator => {
             // Mettre à jour l'unité du soldat
             const unitName = currentAssignUnit.nom || currentAssignUnit.name || 'Unité sans nom';
-            console.log(`Affectation du soldat ${soldierId} à l'unité ${unitName}`);
-            updateSoldierUnitAssignment(soldierId, unitName);
+            const unitId = currentAssignUnit.id_unite || currentAssignUnit.id;
+            console.log(`Affectation du soldat ${operator.id} avec le rôle ${operator.role} à l'unité ${unitName}`);
+            
+            // Récupérer les données actuelles du soldat
+            const soldiers = getSoldiers();
+            const soldierIndex = soldiers.findIndex(s => s.id === operator.id);
+            
+            if (soldierIndex !== -1) {
+                // Mettre à jour l'unité et le rôle du soldat
+                soldiers[soldierIndex].unité = unitName;
+                soldiers[soldierIndex].unité_id = unitId;
+                soldiers[soldierIndex].role = operator.role;
+                
+                // Sauvegarder les modifications
+                localStorage.setItem('eagleOperator_soldiers', JSON.stringify(soldiers));
+                console.log(`Unité et rôle du soldat ${operator.id} mis à jour`);
+            } else {
+                console.error(`Soldat ${operator.id} non trouvé dans la base de données`);
+            }
         });
         
         // Fermer la modale
