@@ -10,6 +10,21 @@ let closeAssignSoldiersModal;
 let filterAssignableSoldiers;
 let assignSelectedSoldiers;
 
+/**
+ * Récupère toutes les unités depuis le localStorage
+ * @returns {Array} Liste des unités
+ */
+function getAllUnits() {
+    try {
+        // Utiliser la clé harmonisée eagleOperator_units
+        const units = JSON.parse(localStorage.getItem('eagleOperator_units') || '[]');
+        return Array.isArray(units) ? units : [];
+    } catch (error) {
+        console.error('Erreur lors de la récupération des unités:', error);
+        return [];
+    }
+}
+
 // Fonction globale pour gérer le clic sur le bouton d'affectation d'opérateurs
 function handleAssignOperator(unitId) {
     console.log('handleAssignOperator appelé avec unitId:', unitId);
