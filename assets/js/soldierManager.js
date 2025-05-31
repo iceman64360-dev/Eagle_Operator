@@ -205,153 +205,148 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             }
         }
-        
-        return role;
-    }
-
-    function displaySoldiers(soldiersToDisplay) {
-        if (!soldierListDiv) {
-            console.error('soldierListDiv not found');
-            return;
-        }
-        // Masquer le message de chargement s'il existe
-        const loadingMsg = document.getElementById('loadingMessage');
-        if (loadingMsg) loadingMsg.style.display = 'none';
-        soldierListDiv.innerHTML = ''; // Vider la liste ou le message de chargement
-
-        if (soldiersToDisplay.length === 0) {
-            soldierListDiv.innerHTML = '<p>Aucun soldat ne correspond aux critères actuels.</p>';
-            return;
-        }
-
-        soldiersToDisplay.forEach(soldier => {
-            const card = document.createElement('div');
-            let cardClasses = 'soldier-card';
-            
-            // Ajouter l'attribut data-id pour faciliter l'identification
-            card.setAttribute('data-id', soldier.id);
-            
-            // Ajouter la classe pour le grade
-            if (soldier.grade) {
-                cardClasses += ` grade-${soldier.grade}`;
-            }
-            
-            // Ajouter une classe spéciale pour les statuts
-            if (soldier.statut) {
-                const statut = soldier.statut.toLowerCase();
-                cardClasses += ` statut-${statut}`;
-                
-                // Ajouter une classe spéciale pour les recrues (pour compatibilité)
-                if (statut === 'recrue') {
-                    cardClasses += ' recrue';
-                }
-            }
-            
-            card.className = cardClasses;
-            
-            // Vérifier si le soldat est commandant ou adjoint d'une unité
-            const role = getSoldierRole(soldier.id);
-            let roleHtml = '';
-            
-            if (role.isCommandant) {
-                roleHtml = `<p class="soldier-role commandant"><strong>Rôle:</strong> Commandant de ${role.unitName}</p>`;
-            } else if (role.isAdjoint) {
-                roleHtml = `<p class="soldier-role adjoint"><strong>Rôle:</strong> Adjoint de ${role.unitName}</p>`;
-            }
-            
-            // Déterminer l'ID de l'unité pour le lien
-            let unitId = role.unitId;
-            
-            // Si le soldat a une unité mais pas de rôle spécifique, chercher l'ID de l'unité par son nom
-            if (!unitId && soldier.unité && soldier.unité.trim() !== 'N/A' && soldier.unité.trim() !== '') {
-                // Rechercher l'unité par son nom
-                const unitsData = JSON.parse(localStorage.getItem('eagleOperator_units') || '[]');
-                const matchingUnit = unitsData.find(u => u.nom === soldier.unité);
-                if (matchingUnit) {
-                    unitId = matchingUnit.id_unite;
-                    console.log(`Unité trouvée pour ${soldier.pseudo}: ${unitId}`);
-                }
-            }
-            
-            // Créer le lien vers l'unité seulement si on a un ID d'unité
-            let unitHtml = '';
-            if (unitId) {
-                unitHtml = `<p><strong>Unité:</strong> <a href="unites.html?unit=${unitId}" class="unit-link" data-unit-id="${unitId}">${soldier.unité || 'N/A'}</a></p>`;
-            } else {
-                unitHtml = `<p><strong>Unité:</strong> ${soldier.unité || 'N/A'}</p>`;
-            }
-            
-            // Photos supprimées selon la demande du client
-            let photoHtml = '';
-            
-            // Déterminer la classe de couleur pour le statut
-            let statutColorClass = '';
-            if (soldier.statut) {
-                const statut = soldier.statut.toLowerCase();
-                switch(statut) {
-                    case 'actif':
-                        statutColorClass = 'statut-color-actif';
-                        break;
-                    case 'inactif':
-                        statutColorClass = 'statut-color-inactif';
-                        break;
-                    case 'permission':
-                        statutColorClass = 'statut-color-permission';
-                        break;
-                    case 'recrue':
-                        statutColorClass = 'statut-color-recrue';
-                        break;
-                }
-            }
-            
-            // Utilisation de 'pseudo' comme demandé dans la structure de soldiers.json
-            card.innerHTML = `
-                ${photoHtml}
-                <h3>${soldier.pseudo || 'N/A'}</h3> 
-                <p><strong>ID:</strong> ${soldier.id || 'N/A'}</p>
-                <p><strong>Grade:</strong> ${soldier.grade || 'N/A'}</p>
-                ${unitHtml}
-                <p><strong>Statut:</strong> <span class="${statutColorClass}">${soldier.statut || 'N/A'}</span></p>
-                ${roleHtml}
-                <div class="soldier-actions">
-                    <button onclick="voirDossier('${soldier.id}')" class="affect-btn">Voir Dossier</button>
-                    <button class="delete-btn" onclick="supprimerSoldat('${soldier.id}')">Supprimer</button>
-                </div>
-            `;
-            soldierListDiv.appendChild(card);
-        });
-    }
-
     function filterAndSearchSoldiers() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedGrade = gradeFilter.value;
-        const selectedStatus = statusFilter.value;
+    const searchTerm = searchInput.value.toLowerCase();
+    const selectedGrade = gradeFilter.value;
+    const selectedStatus = statusFilter.value;
 
-        const filteredSoldiers = allSoldiersData.filter(soldier => {
-            const nameMatch = soldier.pseudo && soldier.pseudo.toLowerCase().includes(searchTerm);
-            const unitMatch = soldier.unité && soldier.unité.toLowerCase().includes(searchTerm);
-            const searchMatch = searchTerm ? (nameMatch || unitMatch) : true; // If no search term, it's a match
+    const filteredSoldiers = allSoldiersData.filter(soldier => {
+        const pseudoMatch = soldier.pseudo && soldier.pseudo.toLowerCase().includes(searchTerm);
+        const unitName = soldier.unité ? getUnitNameById(soldier.unité) : ''; // Assuming getUnitNameById exists or soldier.unité is name
+        const unitMatch = unitName && unitName.toLowerCase().includes(searchTerm);
+        
+        let searchMatch = true;
+        if (searchTerm) {
+            searchMatch = pseudoMatch || unitMatch;
+        }
 
-            const gradeMatch = !selectedGrade || soldier.grade === selectedGrade;
-            const statusMatch = !selectedStatus || soldier.statut === selectedStatus;
+        const gradeMatch = !selectedGrade || soldier.grade === selectedGrade;
+        const statusMatch = !selectedStatus || soldier.statut === selectedStatus;
 
-            return searchMatch && gradeMatch && statusMatch;
-        });
-        displaySoldiers(filteredSoldiers);
+        return searchMatch && gradeMatch && statusMatch;
+    });
+    displaySoldiers(filteredSoldiers);
+}
+
+function displaySoldiers(soldiersToDisplay) {
+    if (!soldierListDiv) {
+        console.error('soldierListDiv not found');
+        return;
     }
-    
-    if (searchInput) searchInput.addEventListener('input', filterAndSearchSoldiers);
-    if (gradeFilter) gradeFilter.addEventListener('change', filterAndSearchSoldiers);
-    if (statusFilter) statusFilter.addEventListener('change', filterAndSearchSoldiers);
-    
-    if (resetFiltersButton) {
-        resetFiltersButton.addEventListener('click', () => {
-            searchInput.value = '';
-            gradeFilter.value = '';
-            statusFilter.value = '';
-            displaySoldiers(allSoldiersData); // Afficher tous les soldats
-        });
+    const loadingMsg = document.getElementById('loadingMessage');
+    if (loadingMsg) loadingMsg.style.display = 'none';
+    soldierListDiv.innerHTML = ''; 
+
+    if (!soldiersToDisplay || soldiersToDisplay.length === 0) {
+        soldierListDiv.innerHTML = '<p>Aucun soldat ne correspond aux critères actuels.</p>';
+        return;
     }
+
+    soldiersToDisplay.forEach(soldier => {
+        const card = document.createElement('div');
+        let cardClasses = 'soldier-card';
+        
+        card.setAttribute('data-id', soldier.id);
+        
+        if (soldier.grade) {
+            const gradeClass = soldier.grade.replace(/\s+/g, '-').toLowerCase();
+            cardClasses += ` grade-${gradeClass}`;
+        }
+        
+        if (soldier.statut) {
+            const statutClass = soldier.statut.toLowerCase().replace(/\s+/g, '-');
+            cardClasses += ` statut-${statutClass}`;
+            if (statutClass === 'recrue') {
+                cardClasses += ' recrue';
+            }
+        }
+        
+        card.className = cardClasses;
+        
+        const role = getSoldierRole(soldier.id); // Assumes getSoldierRole is defined and returns {isCommandant, isAdjoint, unitName, unitId}
+        let roleHtml = '';
+        if (role.isCommandant) {
+            roleHtml = `<p class="soldier-role commandant"><strong>Rôle:</strong> Commandant de ${role.unitName}</p>`;
+        } else if (role.isAdjoint) {
+            roleHtml = `<p class="soldier-role adjoint"><strong>Rôle:</strong> Adjoint de ${role.unitName}</p>`;
+        }
+        
+        let displayUnitName = soldier.unité || 'N/A';
+        let unitLinkHtml = displayUnitName;
+        const unitsData = JSON.parse(localStorage.getItem('eagleOperator_units') || '[]');
+        const assignedUnit = unitsData.find(u => u.id_unite === soldier.unité || u.nom === soldier.unité);
+
+        if (assignedUnit) {
+            displayUnitName = assignedUnit.nom;
+            unitLinkHtml = `<a href="unites.html?unit=${assignedUnit.id_unite}" class="unit-link" data-unit-id="${assignedUnit.id_unite}">${displayUnitName}</a>`;
+        } else if (soldier.unité && soldier.unité !== 'N/A') {
+             // Fallback if unit ID is not found but name exists, maybe it's just a name
+            displayUnitName = soldier.unité;
+            unitLinkHtml = displayUnitName;
+        }
+
+        let unitHtml = `<p><strong>Unité:</strong> ${unitLinkHtml}</p>`;
+        
+        let photoHtml = ''; // Photos removed as per previous context
+        
+        let statutColorClass = '';
+        if (soldier.statut) {
+            const statutLower = soldier.statut.toLowerCase();
+            switch(statutLower) {
+                case 'actif': statutColorClass = 'statut-color-actif'; break;
+                case 'inactif': case 'retraite': case 'transféré': statutColorClass = 'statut-color-inactif'; break;
+                case 'permission': case 'blessé': statutColorClass = 'statut-color-permission'; break;
+                case 'recrue': case 'en formation': statutColorClass = 'statut-color-recrue'; break;
+                default: statutColorClass = 'statut-color-default';
+            }
+        }
+        
+        card.innerHTML = `
+            ${photoHtml}
+            <h3>${soldier.pseudo || 'N/A'}</h3> 
+            <p><strong>ID:</strong> ${soldier.id || 'N/A'}</p>
+            <p><strong>Grade:</strong> ${soldier.grade || 'N/A'}</p>
+            ${unitHtml}
+            <p><strong>Statut:</strong> <span class="${statutColorClass}">${soldier.statut || 'N/A'}</span></p>
+            ${roleHtml}
+            <div class="soldier-actions">
+                <button class="delete-btn">Supprimer</button>
+            </div>
+        `;
+        
+        card.addEventListener('click', (event) => {
+            // Ensure click is not on the delete button itself or its children
+            if (event.target.closest('.delete-btn')) {
+                return;
+            }
+            voirDossier(soldier.id);
+        });
+
+        const deleteButton = card.querySelector('.delete-btn');
+        if (deleteButton) {
+            deleteButton.addEventListener('click', (event) => {
+                event.stopPropagation(); 
+                supprimerSoldat(soldier.id);
+            });
+        }
+        
+        soldierListDiv.appendChild(card);
+    });
+}
+
+// Event listeners for filters
+if (searchInput) searchInput.addEventListener('input', filterAndSearchSoldiers);
+if (gradeFilter) gradeFilter.addEventListener('change', filterAndSearchSoldiers);
+if (statusFilter) statusFilter.addEventListener('change', filterAndSearchSoldiers);
+
+if (resetFiltersButton) {
+    resetFiltersButton.addEventListener('click', () => {
+        searchInput.value = '';
+        gradeFilter.value = '';
+        statusFilter.value = '';
+        filterAndSearchSoldiers(); // Call filterAndSearchSoldiers to refresh with all soldiers
+    });
+}
 
     // --- Fonction pour afficher le dossier complet d'un soldat ---
     window.voirDossier = function(soldierId) {
