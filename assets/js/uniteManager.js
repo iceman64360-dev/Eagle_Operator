@@ -91,6 +91,18 @@ function handleAssignOperator(unitId) {
                 }
             };
         }
+        
+        // Écouteur pour le bouton Confirmer
+        const confirmBtn = document.getElementById('confirmAssignBtn');
+        if (confirmBtn) {
+            console.log('Ajout de l\'\u00e9couteur sur le bouton Confirmer');
+            confirmBtn.onclick = function() {
+                console.log('Bouton Confirmer cliqué');
+                assignSelectedSoldiers();
+            };
+        } else {
+            console.error('Bouton Confirmer non trouvé dans le DOM');
+        }
     } else {
         console.error('Unité non trouvée avec ID:', unitId);
         alert('Erreur: Unité non trouvée.');
@@ -1279,7 +1291,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Ajoute les écouteurs d'événements à la modale
      */
-    function addModalEventListeners() {
+    addModalEventListeners = function() {
         try {
             // Écouteur pour la fermeture de la modale
             const closeBtn = document.getElementById('closeAssignModal');
@@ -1338,6 +1350,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const assignableSoldiers = allSoldiers.filter(soldier => {
                 // Exclure les soldats inactifs
                 if (soldier.status === 'Inactif' || soldier.statut === 'Inactif') return false;
+                
+                // Exclure les recrues
+                if (soldier.status === 'Recru' || soldier.statut === 'Recru') return false;
                 
                 // Exclure les soldats déjà assignés à une unité
                 if (soldier.unité && soldier.unité.trim() !== '') {
@@ -1435,9 +1450,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Met à jour l'état du bouton Confirmer en fonction des soldats sélectionnés
+     * Met à jour l'état du bouton d'assignation en fonction des soldats sélectionnés
      */
-    function updateAssignButtonState() {
+    updateAssignButtonState = function() {
         try {
             const confirmBtn = document.getElementById('confirmAssignBtn');
             const selectedCount = document.getElementById('selected-count');
