@@ -344,20 +344,45 @@ function setupAssignSoldiersModal() {
     
     // Configurer les onglets
     const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    console.log('Configuration des onglets de la modale d\'assignation');
+    console.log('Nombre d\'onglets trouvés:', tabs.length);
+    console.log('Nombre de contenus d\'onglets trouvés:', tabContents.length);
+    
     tabs.forEach(tab => {
         tab.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-tab');
+            console.log(`Clic sur l'onglet ${tabName}`);
+            
             // Retirer la classe active de tous les onglets
-            tabs.forEach(t => t.classList.remove('active'));
+            tabs.forEach(t => {
+                t.classList.remove('active');
+                console.log(`Classe active retirée de l'onglet ${t.getAttribute('data-tab')}`);
+            });
             
             // Ajouter la classe active à l'onglet cliqué
             this.classList.add('active');
+            console.log(`Classe active ajoutée à l'onglet ${tabName}`);
+            
+            // Masquer tous les contenus d'onglets
+            document.querySelectorAll('.tab-content').forEach(content => {
+                if (content) {
+                    content.classList.add('hidden');
+                    console.log(`Contenu ${content.id} masqué`);
+                }
+            });
             
             // Afficher le contenu correspondant
-            const tabName = this.getAttribute('data-tab');
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.add('hidden');
-            });
-            document.getElementById(`${tabName}-tab-content`).classList.remove('hidden');
+            const tabContentId = `${tabName}-tab-content`;
+            const tabContent = document.getElementById(tabContentId);
+            
+            if (tabContent) {
+                tabContent.classList.remove('hidden');
+                console.log(`Contenu de l'onglet ${tabName} (${tabContentId}) affiché`);
+            } else {
+                console.warn(`Contenu de l'onglet ${tabName} (${tabContentId}) introuvable dans le DOM`);
+            }
             
             // Charger les données spécifiques à l'onglet
             if (tabName === 'units') {
@@ -369,6 +394,8 @@ function setupAssignSoldiersModal() {
                     filterAssignableSoldiers();
                     console.log('Rafraîchissement de la liste des soldats dans l\'onglet Soldats');
                 }
+            } else {
+                console.log(`Onglet ${tabName} sélectionné`);
             }
         });
     });
@@ -426,26 +453,15 @@ function setupAssignSoldiersModal() {
         });
     }
     
-    // Gestion des onglets
+    // Cette section est redondante avec la gestion des onglets ci-dessus
+    // et peut être supprimée car elle cause des conflits
+    /*
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            // Retirer la classe active de tous les onglets et contenus
-            tabs.forEach(t => t.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-            
-            // Ajouter la classe active à l'onglet cliqué et au contenu correspondant
-            tab.classList.add('active');
-            const tabId = tab.getAttribute('data-tab');
-            document.getElementById(`${tabId}-tab`).classList.add('active');
-            
-            // Charger le contenu approprié
-            if (tabId === 'units') {
-                loadAllUnits();
-            } else {
-                filterAssignableSoldiers();
-            }
+            // Code de gestion des onglets supprimé car déjà géré plus haut
         });
     });
+    */
 }
 
 /**
@@ -1098,13 +1114,13 @@ function assignSelectedSoldiersToFormation() {
     
     if (!selectedFormationId) {
         console.error('Aucune formation sélectionnée pour l\'assignation');
-        alert('Erreur: Aucune formation sélectionnée');
+        showConfirmationDialog('Erreur', 'Aucune formation sélectionnée', () => {});
         return;
     }
     
     if (selectedSoldiers.length === 0) {
         console.error('Aucun soldat sélectionné pour l\'assignation');
-        alert('Veuillez sélectionner au moins un soldat à assigner');
+        showConfirmationDialog('Erreur', 'Veuillez sélectionner au moins un soldat à assigner', () => {});
         return;
     }
     
@@ -1112,7 +1128,7 @@ function assignSelectedSoldiersToFormation() {
     const formation = formationsData.find(f => f.id === selectedFormationId);
     if (!formation) {
         console.error('Formation non trouvée dans les données:', selectedFormationId);
-        alert('Erreur: Formation introuvable');
+        showConfirmationDialog('Erreur', 'Formation introuvable', () => {});
         return;
     }
     
@@ -1135,7 +1151,11 @@ function assignSelectedSoldiersToFormation() {
     
     if (availableSlots <= 0) {
         console.warn('La formation est déjà complète');
-        alert(`La formation ${formation.name} est déjà complète (${currentParticipants}/${capacity}).`);
+        showConfirmationDialog(
+            'Formation complète',
+            `La formation ${formation.name} est déjà complète (${currentParticipants}/${capacity}).`,
+            () => {}
+        );
         return;
     }
     
@@ -1181,12 +1201,14 @@ function assignSelectedSoldiersToFormation() {
     }
     
     // Afficher un message de confirmation
-    alert(`${nbSoldiers} soldat${nbSoldiers > 1 ? 's' : ''} assigné${nbSoldiers > 1 ? 's' : ''} à la formation ${formation.name}`);
-    
-    // Ouvrir la modale de détail pour voir les participants
-    setTimeout(() => {
-        openFormationDetailModal(selectedFormationId);
-    }, 500);
+    showConfirmationDialog(
+        'Assignation réussie',
+        `${nbSoldiers} soldat${nbSoldiers > 1 ? 's' : ''} assigné${nbSoldiers > 1 ? 's' : ''} à la formation ${formation.name}`,
+        () => {
+            // Ouvrir la modale de détail pour voir les participants après confirmation
+            openFormationDetailModal(selectedFormationId);
+        }
+    );
 }
 
 /**
@@ -1207,7 +1229,11 @@ function assignSelectedSoldiers() {
     const availableSlots = formation.capacity - currentParticipants;
     
     if (availableSlots <= 0) {
-        alert('Cette formation est complète. Impossible d\'ajouter de nouveaux participants.');
+        showConfirmationDialog(
+            'Formation complète',
+            'Cette formation est complète. Impossible d\'ajouter de nouveaux participants.',
+            () => {}
+        );
         return;
     }
     
@@ -1623,8 +1649,12 @@ function deleteFormation(formationId) {
     // Mettre à jour l'affichage
     displayFormations(formationsData);
     
-    // Afficher un message de confirmation
-    alert(`La formation "${formation.name}" a été supprimée avec succès.`);
+    // Afficher un message de confirmation avec notre boîte de dialogue personnalisée
+    showConfirmationDialog(
+        'Succès',
+        `La formation "${formation.name}" a été supprimée avec succès.`,
+        () => {}
+    );
 }
 
 /**
