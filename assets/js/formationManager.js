@@ -248,48 +248,107 @@ function setupFormationDetailModal() {
  */
 function setupAssignSoldiersModal() {
     const modal = document.getElementById('assign-soldiers-modal');
-    const closeBtn = document.getElementById('close-assign-soldiers');
-    const cancelBtn = document.getElementById('cancel-assign');
-    const confirmBtn = document.getElementById('confirm-assign');
+    const closeBtn = document.getElementById('close-assign-soldiers-btn');
+    const cancelBtn = document.getElementById('cancel-assign-soldiers-btn');
+    const confirmBtn = document.getElementById('confirm-assign-soldiers-btn');
     const soldierSearch = document.getElementById('soldier-search');
     const soldierFilter = document.getElementById('soldier-filter');
     const unitFilter = document.getElementById('unit-filter');
     
-    // Fermer la modale
+    // Configurer les boutons de fermeture
     if (closeBtn) {
         closeBtn.addEventListener('click', function() {
-            console.log('Bouton fermer assign-soldiers cliqué');
             modal.classList.add('hidden-modal');
             selectedSoldiers = [];
+            console.log('Modale d\'assignation fermée via bouton fermer');
         });
     }
     
-    // Annuler l'assignation
     if (cancelBtn) {
         cancelBtn.addEventListener('click', function() {
-            console.log('Bouton annuler assignation cliqué');
             modal.classList.add('hidden-modal');
             selectedSoldiers = [];
+            console.log('Modale d\'assignation fermée via bouton annuler');
         });
     }
     
-    // Gestion du nouveau bouton de fermeture
-    const newCloseBtn = document.querySelector('#assign-soldiers-modal .close-formation-btn');
-    if (newCloseBtn) {
-        console.log('Nouveau bouton de fermeture trouvé pour assign-soldiers');
-        newCloseBtn.addEventListener('click', function() {
-            console.log('Nouveau bouton fermer assign-soldiers cliqué');
-            modal.classList.add('hidden-modal');
-            selectedSoldiers = [];
-        });
-    }
-    
-    // Confirmer l'assignation
     if (confirmBtn) {
-        confirmBtn.addEventListener('click', () => {
-            assignSelectedSoldiers();
+        confirmBtn.addEventListener('click', function() {
+            assignSelectedSoldiersToFormation();
             modal.classList.add('hidden-modal');
-            selectedSoldiers = [];
+            console.log('Soldats assignés à la formation et modale fermée');
+        });
+    }
+    
+    // Fermeture par Escape et clic sur l'arrière-plan
+    if (modal) {
+        // Fermeture par Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && !modal.classList.contains('hidden-modal')) {
+                modal.classList.add('hidden-modal');
+                selectedSoldiers = [];
+                console.log('Modale d\'assignation fermée via touche Escape');
+            }
+        });
+        
+        // Fermeture par clic sur l'arrière-plan
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.classList.add('hidden-modal');
+                selectedSoldiers = [];
+                console.log('Modale d\'assignation fermée via clic sur arrière-plan');
+            }
+        });
+    }
+    
+    // Configurer les onglets
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Retirer la classe active de tous les onglets
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            // Ajouter la classe active à l'onglet cliqué
+            this.classList.add('active');
+            
+            // Afficher le contenu correspondant
+            const tabName = this.getAttribute('data-tab');
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(`${tabName}-tab-content`).classList.remove('hidden');
+            
+            // Charger les données spécifiques à l'onglet
+            if (tabName === 'units') {
+                loadAllUnits();
+                console.log('Chargement des unités dans l\'onglet Unités');
+            } else if (tabName === 'soldiers') {
+                // Rafraîchir la liste des soldats si nécessaire
+                if (allSoldiersData && allSoldiersData.length > 0) {
+                    filterAssignableSoldiers();
+                    console.log('Rafraîchissement de la liste des soldats dans l\'onglet Soldats');
+                }
+            }
+        });
+    });
+    
+    // Configurer les filtres et la recherche
+    const searchInput = document.getElementById('soldier-search');
+    const filterSelect = document.getElementById('soldier-filter');
+    const unitFilterSelect = document.getElementById('unit-filter');
+    
+    // Remplir le filtre d'unités avec les unités disponibles
+    if (unitFilterSelect) {
+        // Conserver l'option 'Toutes les unités'
+        unitFilterSelect.innerHTML = '<option value="all">Toutes les unités</option>';
+        
+        // Ajouter les unités disponibles
+        const units = getAllUnits();
+        units.forEach(unit => {
+            const option = document.createElement('option');
+            option.value = unit.id;
+            option.textContent = `${unit.name} (${unit.type})`;
+            unitFilterSelect.appendChild(option);
         });
     }
     
@@ -750,12 +809,30 @@ function openAssignSoldiersModal(formationId) {
  * @param {Object} formation - Données de la formation
  */
 function displayAssignableSoldiers(formation) {
+    // Récupérer tous les soldats
+    allSoldiersData = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+    
+    // Afficher les soldats dans l'onglet Soldats
     const soldiersList = document.getElementById('assignable-soldiers-list');
+    if (soldiersList) {
+        soldiersList.innerHTML = '';
+        
+        if (allSoldiersData.length === 0) {
+            soldiersList.innerHTML = '<div class="no-soldiers">Aucun soldat disponible</div>';
+            return;
+        }
+        
+        // Filtrer les soldats selon les critères
+        filterAssignableSoldiers();
+    }
     
-    if (!soldiersList) return;
-    
-    // Filtrer les soldats
-    filterAssignableSoldiers();
+    // Initialiser l'onglet Unités
+    const unitsTab = document.querySelector('.tab[data-tab="units"]');
+    if (unitsTab) {
+        // Préparer l'onglet Unités pour le chargement ultérieur
+        document.getElementById('assignable-units-list').innerHTML = '';
+        document.getElementById('unit-soldiers-list').innerHTML = '';
+    }
 }
 
 /**
@@ -903,6 +980,46 @@ function checkEligibility(soldier, formation) {
     }
     
     return true;
+}
+
+/**
+ * Assigne les soldats sélectionnés à la formation
+ */
+function assignSelectedSoldiersToFormation() {
+    if (!selectedFormationId || selectedSoldiers.length === 0) {
+        console.log('Aucun soldat sélectionné ou aucune formation sélectionnée');
+        return;
+    }
+    
+    // Récupérer la formation sélectionnée
+    const formation = formationsData.find(f => f.id === selectedFormationId);
+    if (!formation) {
+        console.error('Formation non trouvée:', selectedFormationId);
+        return;
+    }
+    
+    // Stocker le nombre de soldats avant assignation pour le message
+    const nbSoldiers = selectedSoldiers.length;
+    
+    // Ajouter les soldats sélectionnés à la formation
+    selectedSoldiers.forEach(soldierId => {
+        if (!formation.participants.includes(soldierId)) {
+            formation.participants.push(soldierId);
+            console.log(`Soldat ${soldierId} assigné à la formation ${formation.name}`);
+        }
+    });
+    
+    // Sauvegarder les modifications
+    saveFormations();
+    
+    // Mettre à jour l'affichage
+    displayFormations(formationsData);
+    
+    // Réinitialiser la sélection
+    selectedSoldiers = [];
+    
+    // Afficher un message de confirmation
+    alert(`${nbSoldiers} soldat${nbSoldiers > 1 ? 's' : ''} assigné${nbSoldiers > 1 ? 's' : ''} à la formation ${formation.name}`);
 }
 
 /**
@@ -1067,7 +1184,7 @@ function populateUnitFilter(selectElement) {
  * @returns {Array} Tableau des unités
  */
 function getAllUnits() {
-    const unitsData = localStorage.getItem('units');
+    const unitsData = localStorage.getItem('eagleOperator_units');
     return unitsData ? JSON.parse(unitsData) : [];
 }
 
@@ -1081,11 +1198,30 @@ function loadAllUnits() {
     // Vider la liste
     unitsList.innerHTML = '';
     
-    // Récupérer les unités
+    // Récupérer toutes les unités
     const units = getAllUnits();
     
-    // Afficher les unités
+    if (units.length === 0) {
+        unitsList.innerHTML = '<div class="no-units">Aucune unité disponible</div>';
+        return;
+    }
+    
+    // Trier les unités par type et nom
+    units.sort((a, b) => {
+        // D'abord par type d'unité (QG, Compagnie, Section, Escouade)
+        const typeOrder = { 'QG': 0, 'Compagnie': 1, 'Section': 2, 'Escouade': 3 };
+        const typeA = typeOrder[a.type] || 999;
+        const typeB = typeOrder[b.type] || 999;
+        
+        if (typeA !== typeB) return typeA - typeB;
+        
+        // Ensuite par nom
+        return a.name.localeCompare(b.name);
+    });
+    
+    // Créer les éléments pour chaque unité
     units.forEach(unit => {
+        // Créer l'élément d'unité
         const unitItem = document.createElement('div');
         unitItem.className = 'unit-item';
         unitItem.setAttribute('data-unit-id', unit.id);
@@ -1136,7 +1272,7 @@ function displayUnitSoldiers(unitId) {
     }
     
     // Récupérer tous les soldats
-    const allSoldiers = getAllSoldiers();
+    const allSoldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
     
     // Filtrer les soldats qui appartiennent à cette unité
     const unitSoldiers = allSoldiers.filter(soldier => unit.members.includes(soldier.id));
@@ -1147,3 +1283,125 @@ function displayUnitSoldiers(unitId) {
         unitSoldiersList.appendChild(soldierItem);
     });
 }
+
+/**
+ * Filtre les soldats assignables selon les critères de recherche et de filtre
+ */
+function filterAssignableSoldiers() {
+    const searchInput = document.getElementById('soldier-search');
+    const filterSelect = document.getElementById('soldier-filter');
+    const unitFilterSelect = document.getElementById('unit-filter');
+    const soldiersList = document.getElementById('assignable-soldiers-list');
+    
+    if (!soldiersList || !searchInput || !filterSelect || !unitFilterSelect) return;
+    
+    // Vider la liste
+    soldiersList.innerHTML = '';
+    
+    // Récupérer la formation sélectionnée
+    const formation = formationsData.find(f => f.id === selectedFormationId);
+    if (!formation) return;
+    
+    // Récupérer les valeurs des filtres
+    const searchValue = searchInput.value.toLowerCase();
+    const filterValue = filterSelect.value;
+    const unitFilterValue = unitFilterSelect.value;
+    
+    // Filtrer les soldats selon les critères
+    let filteredSoldiers = allSoldiersData.filter(soldier => {
+        // Filtre de recherche
+        const nameMatch = `${soldier.firstName} ${soldier.lastName}`.toLowerCase().includes(searchValue) ||
+                         `${soldier.lastName} ${soldier.firstName}`.toLowerCase().includes(searchValue) ||
+                         (soldier.id && soldier.id.toLowerCase().includes(searchValue));
+        
+        // Filtre de statut
+        let statusMatch = true;
+        if (filterValue === 'available') {
+            statusMatch = !formation.participants.includes(soldier.id);
+        } else if (filterValue === 'eligible') {
+            statusMatch = checkEligibility(soldier, formation) && !formation.participants.includes(soldier.id);
+        }
+        
+        // Filtre d'unité
+        let unitMatch = true;
+        if (unitFilterValue !== 'all') {
+            // Vérifier si le soldat appartient à l'unité sélectionnée
+            const units = getAllUnits();
+            const unit = units.find(u => u.id === unitFilterValue);
+            if (unit && unit.members) {
+                unitMatch = unit.members.includes(soldier.id);
+            } else {
+                unitMatch = false;
+            }
+        }
+        
+        return nameMatch && statusMatch && unitMatch;
+    });
+    
+    // Afficher les soldats filtrés
+    if (filteredSoldiers.length === 0) {
+        soldiersList.innerHTML = '<div class="no-soldiers">Aucun soldat ne correspond aux critères de recherche</div>';
+        return;
+    }
+    
+    // Trier les soldats par nom
+    filteredSoldiers.sort((a, b) => a.lastName.localeCompare(b.lastName));
+    
+    // Créer les éléments pour chaque soldat
+    filteredSoldiers.forEach(soldier => {
+        const soldierItem = createSoldierItemForAssignment(soldier);
+        soldiersList.appendChild(soldierItem);
+    });
+}
+
+/**
+ * Crée un élément HTML pour un soldat dans la liste d'assignation
+ * @param {Object} soldier - Données du soldat
+ * @returns {HTMLElement} Élément HTML du soldat
+ */
+function createSoldierItemForAssignment(soldier) {
+    const formation = formationsData.find(f => f.id === selectedFormationId);
+    const isParticipant = formation && formation.participants.includes(soldier.id);
+    const isEligible = formation ? checkEligibility(soldier, formation) : true;
+    
+    const soldierItem = document.createElement('div');
+    soldierItem.className = `soldier-item ${isParticipant ? 'participant' : ''} ${!isEligible ? 'ineligible' : ''}`;
+    soldierItem.setAttribute('data-soldier-id', soldier.id);
+    
+    // Créer le contenu HTML du soldat
+    soldierItem.innerHTML = `
+        <div class="soldier-checkbox">
+            <input type="checkbox" id="soldier-${soldier.id}" ${isParticipant ? 'checked disabled' : ''} ${!isEligible && !isParticipant ? 'disabled' : ''}>
+        </div>
+        <div class="soldier-info">
+            <div class="soldier-name">${soldier.rank} ${soldier.lastName} ${soldier.firstName}</div>
+            <div class="soldier-details">
+                <span class="soldier-id">ID: ${soldier.id}</span>
+                <span class="soldier-unit">${soldier.unit ? soldier.unit : 'Sans unité'}</span>
+                <span class="soldier-status">${soldier.status}</span>
+            </div>
+        </div>
+    `;
+    
+    // Ajouter un gestionnaire d'événement pour la sélection
+    const checkbox = soldierItem.querySelector(`#soldier-${soldier.id}`);
+    if (checkbox && !isParticipant && isEligible) {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                if (!selectedSoldiers.includes(soldier.id)) {
+                    selectedSoldiers.push(soldier.id);
+                }
+            } else {
+                const index = selectedSoldiers.indexOf(soldier.id);
+                if (index !== -1) {
+                    selectedSoldiers.splice(index, 1);
+                }
+            }
+            console.log('Soldats sélectionnés:', selectedSoldiers);
+        });
+    }
+    
+    return soldierItem;
+}
+
+// Fin du fichier formationManager.js
