@@ -248,6 +248,27 @@ function setupFormationDetailModal() {
     } else {
         console.error('Bouton assigner des soldats non trouvé');
     }
+    
+    // Supprimer la formation
+    const btnDeleteFormation = document.getElementById('btn-delete-formation');
+    if (btnDeleteFormation) {
+        console.log('Bouton supprimer formation trouvé');
+        btnDeleteFormation.addEventListener('click', () => {
+            console.log('Bouton supprimer formation cliqué');
+            if (selectedFormationId) {
+                console.log('Formation à supprimer ID:', selectedFormationId);
+                // Demander confirmation avant de supprimer
+                if (confirm('Êtes-vous sûr de vouloir supprimer cette formation ? Cette action est irréversible.')) {
+                    deleteFormation(selectedFormationId);
+                    modal.classList.add('hidden-modal');
+                }
+            } else {
+                console.error('Aucune formation sélectionnée pour la suppression');
+            }
+        });
+    } else {
+        console.error('Bouton supprimer formation non trouvé');
+    }
 }
 
 /**
@@ -1437,6 +1458,38 @@ function createSoldierItemForAssignment(soldier) {
     }
     
     return soldierItem;
+}
+
+/**
+ * Supprime une formation et met à jour la base de données
+ * @param {string} formationId - Identifiant de la formation à supprimer
+ */
+function deleteFormation(formationId) {
+    console.log('Suppression de la formation avec ID:', formationId);
+    
+    // Trouver l'index de la formation dans le tableau
+    const formationIndex = formationsData.findIndex(f => f.id === formationId);
+    
+    if (formationIndex === -1) {
+        console.error('Formation non trouvée pour la suppression');
+        return;
+    }
+    
+    // Récupérer les informations de la formation avant suppression pour le log
+    const formation = formationsData[formationIndex];
+    console.log('Suppression de la formation:', formation.name);
+    
+    // Supprimer la formation du tableau
+    formationsData.splice(formationIndex, 1);
+    
+    // Mettre à jour le localStorage
+    saveFormations();
+    
+    // Mettre à jour l'affichage
+    displayFormations(formationsData);
+    
+    // Afficher un message de confirmation
+    alert(`La formation "${formation.name}" a été supprimée avec succès.`);
 }
 
 // Fin du fichier formationManager.js
