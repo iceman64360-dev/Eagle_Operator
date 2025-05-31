@@ -831,7 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('Création du bouton d\'affectation avec ID:', btn.id);
                     // Stocker l'ID de l'unité comme attribut de données
                     btn.setAttribute('data-unit-id', selectedUnit.id_unite);
-                    btn.setAttribute('onclick', 'handleAssignOperator(this.getAttribute("data-unit-id"))');
+                    btn.setAttribute('onclick', 'openAssignOperatorsModal(this.getAttribute("data-unit-id"))');
                     personnelEncart.appendChild(btn);
                 }
             } else {
@@ -843,7 +843,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Création du bouton d\'affectation (aucun personnel) avec ID:', btn.id);
                 // Stocker l'ID de l'unité comme attribut de données
                 btn.setAttribute('data-unit-id', selectedUnit.id_unite);
-                btn.setAttribute('onclick', 'handleAssignOperator(this.getAttribute("data-unit-id"))');
+                btn.setAttribute('onclick', 'openAssignOperatorsModal(this.getAttribute("data-unit-id"))');
                 personnelEncart.appendChild(btn);
             }
             unitDetailPane.appendChild(personnelEncart);
@@ -1352,7 +1352,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (soldier.status === 'Inactif' || soldier.statut === 'Inactif') return false;
                 
                 // Exclure les recrues
-                if (soldier.status === 'Recru' || soldier.statut === 'Recru') return false;
+                if (soldier.status === 'Recru' || soldier.statut === 'Recru' || 
+                    soldier.grade === 'Recru' || 
+                    (soldier.grade && soldier.grade.toLowerCase().includes('recru'))) {
+                    console.log('Exclu car recru:', soldier.pseudo, soldier.status, soldier.statut, soldier.grade);
+                    return false;
+                }
                 
                 // Exclure les soldats déjà assignés à une unité
                 if (soldier.unité && soldier.unité.trim() !== '') {
@@ -1472,29 +1477,126 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Assigne les soldats sélectionnés à l'unité courante
-     */
-    assignSelectedSoldiers = function() {
-        try {
-            if (!currentUnit || selectedSoldiers.length === 0) {
-                console.error('Aucune unité courante ou aucun soldat sélectionné');
-                return;
+/**
+ * Crée un élément de liste pour un soldat assignable
+ * @param {Object} soldier - Le soldat à afficher
+ * @returns {HTMLElement} L'élément de liste créé
+ */
+function createSoldierItemForAssignment(soldier) {
+    const item = document.createElement('div');
+    item.className = 'soldier-item';
+    item.dataset.soldierId = soldier.id;
+    
+    // Créer la case à cocher
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'soldier-checkbox';
+    checkbox.dataset.soldierId = soldier.id;
+    checkbox.onchange = function() {
+        if (this.checked) {
+            if (!selectedSoldiers.includes(soldier.id)) {
+                selectedSoldiers.push(soldier.id);
             }
-            
-            // Assigner chaque soldat sélectionné à l'unité
-            selectedSoldiers.forEach(soldierId => {
-                // Mettre à jour l'unité du soldat
-                updateSoldierUnit(soldierId, currentUnit.nom);
-            });
-            
-            // Fermer la modale
-            closeAssignSoldiersModal();
-            
-            // Rafraîchir l'affichage des détails de l'unité
-            displayUnitDetails(currentUnit.id_unite);
-        } catch (error) {
-            console.error('Erreur lors de l\'assignation des soldats sélectionnés:', error);
+        } else {
+            const index = selectedSoldiers.indexOf(soldier.id);
+            if (index !== -1) {
+                selectedSoldiers.splice(index, 1);
+            }
         }
+        updateAssignButtonState();
+    };
+    
+    // Créer les informations du soldat
+    const soldierInfo = document.createElement('div');
+    soldierInfo.className = 'soldier-info';
+    soldierInfo.innerHTML = `
+        <div class="soldier-name">${soldier.pseudo || 'Sans pseudo'}</div>
+        <div class="soldier-details">
+            <span>${soldier.grade || 'Sans grade'}</span> | 
+            <span>${soldier.nom || 'Sans nom'} ${soldier.prenom || ''}</span>
+        </div>
+    `;
+    
+    // Assembler l'élément
+    item.appendChild(checkbox);
+    item.appendChild(soldierInfo);
+    
+    return item;
+}
+
+/**
+ * Met à jour l'état du bouton d'assignation en fonction des soldats sélectionnés
+ */
+updateAssignButtonState = function() {
+    try {
+        const confirmBtn = document.getElementById('confirmAssignBtn');
+        const selectedCount = document.getElementById('selected-count');
+        
+        if (confirmBtn && selectedCount) {
+            const count = selectedSoldiers.length;
+            selectedCount.textContent = count;
+            
+            if (count > 0) {
+                confirmBtn.disabled = false;
+            } else {
+                confirmBtn.disabled = true;
+            }
+        }
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour de l\'\u00e9tat du bouton Confirmer:', error);
     }
-});
+}
+
+/**
+ * Assigne les soldats sélectionnés à l'unité courante
+ */
+assignSelectedSoldiers = function() {
+    try {
+        console.log('Fonction assignSelectedSoldiers appelée');
+        console.log('Unité courante:', currentUnit);
+        console.log('Soldats sélectionnés:', selectedSoldiers);
+        
+        if (!currentUnit) {
+            console.error('Aucune unité courante définie');
+            alert('Erreur: Aucune unité sélectionnée pour l\'affectation.');
+            return;
+        }
+        
+        if (selectedSoldiers.length === 0) {
+            console.error('Aucun soldat sélectionné');
+            alert('Veuillez sélectionner au moins un soldat à affecter.');
+            return;
+        }
+        
+        // Assigner chaque soldat sélectionné à l'unité
+        selectedSoldiers.forEach(soldierId => {
+            // Mettre à jour l'unité du soldat
+            const unitName = currentUnit.nom || currentUnit.name || 'Unité sans nom';
+            console.log(`Affectation du soldat ${soldierId} à l'unité ${unitName}`);
+            updateSoldierUnit(soldierId, unitName);
+        });
+        
+        // Fermer la modale
+        const modal = document.getElementById('assignSoldiersModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        
+        // Rafraîchir l'affichage des détails de l'unité
+        if (currentUnit.id_unite) {
+            displayUnitDetails(currentUnit.id_unite);
+        } else if (currentUnit.id) {
+            displayUnitDetails(currentUnit.id);
+        } else {
+            console.error('Impossible de rafraîchir l\'affichage: ID de l\'unité manquant');
+            // Recharger la page pour voir les changements
+            location.reload();
+        }
+        
+        // Afficher un message de succès
+        alert(`${selectedSoldiers.length} soldat(s) affecté(s) avec succès à l'unité ${currentUnit.nom || currentUnit.name}.`);
+    } catch (error) {
+        console.error('Erreur lors de l\'assignation des soldats sélectionnés:', error);
+        alert('Une erreur est survenue lors de l\'affectation des soldats. Veuillez réessayer.');
+    }
+}
