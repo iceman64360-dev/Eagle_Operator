@@ -3,17 +3,22 @@
  * Ce module gère l'affichage, l'ajout, la modification et l'assignation des soldats aux formations
  */
 
-// Données des formations
+// Variables globales
 let formationsData = [];
 let allSoldiersData = [];
 let selectedFormationId = null;
 let selectedSoldiers = [];
+let currentView = 'list';
 
 // Initialisation du gestionnaire de formations
 document.addEventListener('DOMContentLoaded', function() {
-    // Charger les données
-    loadFormations();
+    console.log('Initialisation du gestionnaire de formations');
+    
+    // Charger les soldats d'abord pour s'assurer que allSoldiersData est initialisé
     loadSoldiers();
+    
+    // Charger les formations
+    loadFormations();
     
     // Configurer les événements
     setupFormationEvents();
@@ -802,19 +807,37 @@ function displayParticipants(formation) {
         return;
     }
     
+    // Récupérer les données les plus récentes des soldats depuis localStorage
+    let soldiers = [];
+    try {
+        soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+        console.log(`Récupération de ${soldiers.length} soldats depuis localStorage pour affichage des participants`);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des données des soldats:', error);
+        soldiers = allSoldiersData; // Utiliser les données en mémoire en cas d'erreur
+    }
+    
+    // Mettre à jour allSoldiersData avec les données les plus récentes
+    allSoldiersData = soldiers;
+    
     // Afficher chaque participant
     formation.participants.forEach(participantId => {
-        const soldier = allSoldiersData.find(s => s.id === participantId);
+        const soldier = soldiers.find(s => s.id === participantId);
         
         if (soldier) {
             const participantItem = document.createElement('div');
             participantItem.className = 'participant-item';
             
+            // S'assurer que les propriétés existent pour éviter les erreurs
+            const firstName = soldier.firstName || '';
+            const lastName = soldier.lastName || 'Sans nom';
+            const rank = soldier.rank || '';
+            
             participantItem.innerHTML = `
                 <div class="participant-info">
-                    <div class="participant-avatar">${soldier.firstName.charAt(0)}${soldier.lastName.charAt(0)}</div>
+                    <div class="participant-avatar">${firstName.charAt(0)}${lastName.charAt(0)}</div>
                     <div>
-                        <div class="participant-name">${soldier.rank} ${soldier.lastName} ${soldier.firstName}</div>
+                        <div class="participant-name">${rank} ${lastName} ${firstName}</div>
                         <div class="participant-unit">${soldier.unit || 'Non assigné'}</div>
                     </div>
                 </div>
@@ -833,6 +856,8 @@ function displayParticipants(formation) {
                     removeParticipant(soldier.id, formation.id);
                 });
             }
+        } else {
+            console.warn(`Soldat ${participantId} non trouvé dans les données pour l'affichage des participants`);
         }
     });
 }
@@ -856,7 +881,32 @@ function removeParticipant(soldierId, formationId) {
         // Mettre à jour l'historique du soldat
         updateSoldierHistory(soldierId, `Retiré de la formation "${formationsData[formationIndex].name}"`);
         
-        // Sauvegarder les modifications
+        // Mettre à jour les données du soldat
+        const soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+        const soldierIndex = soldiers.findIndex(s => s.id === soldierId);
+        
+        if (soldierIndex !== -1) {
+            const soldier = soldiers[soldierIndex];
+            
+            // Vérifier si le soldat a des formations
+            if (soldier.formations && Array.isArray(soldier.formations)) {
+                // Trouver et supprimer la formation des données du soldat
+                const formationIndex = soldier.formations.findIndex(f => f.formationId === formationId);
+                if (formationIndex !== -1) {
+                    soldier.formations.splice(formationIndex, 1);
+                    console.log(`Formation ${formationId} retirée des données du soldat ${soldier.lastName}`);
+                    
+                    // Mettre à jour le soldat dans le tableau
+                    soldiers[soldierIndex] = soldier;
+                    
+                    // Sauvegarder les modifications des soldats
+                    localStorage.setItem('eagleOperator_soldiers', JSON.stringify(soldiers));
+                    console.log('Données des soldats sauvegardées dans le localStorage');
+                }
+            }
+        }
+        
+        // Sauvegarder les modifications des formations
         saveFormations();
         
         // Mettre à jour l'affichage
@@ -1417,22 +1467,63 @@ function assignSelectedSoldiersToFormation() {
     // Stocker le nombre de soldats avant assignation pour le message
     const nbSoldiers = soldiersToAssign.length;
     
+    // Récupérer les données des soldats
+    const soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+    
     // Ajouter les soldats sélectionnés à la formation
     soldiersToAssign.forEach(soldierId => {
         if (!formation.participants.includes(soldierId)) {
+            // Ajouter le soldat à la liste des participants de la formation
             formation.participants.push(soldierId);
             console.log(`Soldat ${soldierId} assigné à la formation ${formation.name}`);
             
             // Mettre à jour l'historique du soldat
             updateSoldierHistory(soldierId, `Assigné à la formation "${formation.name}"`);
+            
+            // Mettre à jour les données du soldat
+            const soldierIndex = soldiers.findIndex(s => s.id === soldierId);
+            if (soldierIndex !== -1) {
+                const soldier = soldiers[soldierIndex];
+                
+                // Initialiser le tableau des formations si nécessaire
+                if (!soldier.formations) {
+                    soldier.formations = [];
+                }
+                
+                // Vérifier si la formation est déjà assignée au soldat
+                const existingFormation = soldier.formations.find(f => f.formationId === formation.id);
+                if (!existingFormation) {
+                    // Ajouter la formation aux formations du soldat
+                    // Structure harmonisée avec dossierSoldat.js
+                    soldier.formations.push({
+                        formationId: formation.id,
+                        nom: formation.name, // Ajout du nom pour dossierSoldat.js
+                        date: new Date().toISOString(),
+                        statut: 'assignee'
+                    });
+                    
+                    // Mettre à jour le soldat dans le tableau
+                    soldiers[soldierIndex] = soldier;
+                    console.log(`Formation ${formation.name} ajoutée aux données du soldat ${soldier.lastName}`);
+                }
+            }
         } else {
             console.warn(`Le soldat ${soldierId} est déjà assigné à cette formation`);
         }
     });
     
-    // Sauvegarder les modifications
+    // Sauvegarder les modifications des formations
     saveFormations();
     console.log('Formations sauvegardées dans le localStorage');
+    
+    // Sauvegarder les modifications des soldats
+    localStorage.setItem('eagleOperator_soldiers', JSON.stringify(soldiers));
+    
+    // Mettre à jour allSoldiersData si elle est déjà chargée
+    if (allSoldiersData.length > 0) {
+        allSoldiersData = soldiers;
+    }
+    console.log('Données des soldats sauvegardées dans le localStorage');
     
     // Mettre à jour l'affichage
     displayFormations(formationsData);
@@ -1465,24 +1556,61 @@ function assignSelectedSoldiersToFormation() {
  * @param {string} event - Description de l'événement
  */
 function updateSoldierHistory(soldierId, event) {
-    const soldierIndex = allSoldiersData.findIndex(s => s.id === soldierId);
+    console.log(`Mise à jour de l'historique du soldat ${soldierId}: ${event}`);
     
-    if (soldierIndex === -1) return;
-    
-    // Initialiser l'historique si nécessaire
-    if (!allSoldiersData[soldierIndex].history) {
-        allSoldiersData[soldierIndex].history = [];
+    // Récupérer les données des soldats depuis localStorage
+    let soldiers = [];
+    try {
+        soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+    } catch (error) {
+        console.error('Erreur lors de la récupération des données des soldats:', error);
+        return;
     }
     
-    // Ajouter l'événement à l'historique
-    allSoldiersData[soldierIndex].history.push({
+    // Trouver le soldat concerné
+    const soldierIndex = soldiers.findIndex(s => s.id === soldierId);
+    
+    if (soldierIndex === -1) {
+        console.warn(`Soldat ${soldierId} non trouvé pour la mise à jour de l'historique`);
+        return;
+    }
+    
+    const soldier = soldiers[soldierIndex];
+    
+    // Support pour les deux structures d'historique (history et historique)
+    // pour assurer la compatibilité avec le code existant
+    
+    // Mise à jour de history (nouvelle structure)
+    if (!soldier.history) {
+        soldier.history = [];
+    }
+    
+    soldier.history.push({
         date: new Date().toISOString(),
         event: event,
         type: 'formation'
     });
     
+    // Mise à jour de historique (ancienne structure) pour compatibilité
+    if (!soldier.historique) {
+        soldier.historique = [];
+    }
+    
+    soldier.historique.push({
+        date: new Date().toISOString(),
+        type: 'formation',
+        description: event
+    });
+    
+    console.log(`Événement ajouté à l'historique du soldat ${soldier.lastName || soldierId}`);
+    
     // Sauvegarder les modifications
-    localStorage.setItem('eagleOperator_soldiers', JSON.stringify(allSoldiersData));
+    localStorage.setItem('eagleOperator_soldiers', JSON.stringify(soldiers));
+    
+    // Mettre à jour allSoldiersData si elle est déjà chargée
+    if (allSoldiersData.length > 0) {
+        allSoldiersData = soldiers;
+    }
 }
 
 /**
@@ -1794,179 +1922,189 @@ function filterAssignableSoldiers() {
         return;
     }
     
-    // Remplir le sélecteur d'unités s'il est vide
-    if (unitFilterSelect && unitFilterSelect.options.length <= 1) {
-        console.log('Remplissage initial du sélecteur d\'unités');
-        populateUnitFilter();
-    }
-    
-    // Récupérer la formation sélectionnée
-    const formation = formationsData.find(f => f.id === selectedFormationId);
-    
-    if (!formation) {
-        console.error('Formation non trouvée avec ID:', selectedFormationId);
-        return;
-    }
-    
-    console.log('Formation sélectionnée pour le filtrage:', formation.name);
-    
-    const searchTerm = searchInput.value.toLowerCase();
-    const filterValue = filterSelect.value;
-    const unitFilterValue = unitFilterSelect ? unitFilterSelect.value : 'all';
-    const statusFilterValue = statusFilterSelect ? statusFilterSelect.value : 'active'; // Par défaut, afficher uniquement les soldats actifs
-    
-    console.log('Critères de filtrage - Recherche:', searchTerm, 
-                '| Filtre:', filterValue, 
-                '| Unité:', unitFilterValue, 
-                '| Statut:', statusFilterValue);
-    
-    // Vider la liste
-    soldiersList.innerHTML = '';
-    
-    // Récupérer les unités si nécessaire
-    let selectedUnitMembers = [];
-    let selectedUnitCommander = null;
-    let selectedUnitName = 'Toutes les unités';
-    
-    if (unitFilterValue !== 'all') {
-        const units = getAllUnits();
-        const selectedUnit = units.find(unit => unit.id === unitFilterValue);
+    // Récupérer tous les soldats depuis localStorage avec la clé harmonisée
+    try {
+        // Mettre à jour la variable globale allSoldiersData
+        allSoldiersData = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+        console.log('Soldats récupérés depuis localStorage et mis à jour dans la variable globale:', allSoldiersData.length);
         
-        if (selectedUnit) {
-            selectedUnitName = selectedUnit.name || 'Unité sans nom';
-            console.log('Unité sélectionnée pour le filtrage:', selectedUnitName);
-            
-            // S'assurer que les membres existent
-            if (Array.isArray(selectedUnit.members)) {
-                selectedUnitMembers = [...selectedUnit.members];
-            }
-            
-            // Ajouter le commandant s'il existe
-            if (selectedUnit.commander) {
-                selectedUnitCommander = selectedUnit.commander;
-                console.log('Commandant de l\'unité inclus dans le filtrage:', selectedUnitCommander);
-            }
-        } else {
-            console.warn('Unité non trouvée avec ID:', unitFilterValue);
-        }
-    }
-    
-    // Afficher l'unité sélectionnée dans l'interface
-    const selectedUnitElement = document.getElementById('selected-unit-name');
-    if (selectedUnitElement) {
-        selectedUnitElement.textContent = selectedUnitName;
-    }
-    
-    // Vérifier et compléter les données des soldats pour éviter les erreurs
-    const safeSoldiers = validateAndFixSoldierData(allSoldiersData);
-    console.log('Nombre de soldats après validation:', safeSoldiers.length);
-    
-    // Filtrer les soldats
-    let filteredSoldiers = safeSoldiers.filter(soldier => {
-        // Exclure les soldats déjà participants si on est dans le contexte d'une formation
-        if (formation && formation.participants) {
-            const isParticipant = formation.participants.includes(soldier.id);
-            if (isParticipant) return false;
+        // Remplir le sélecteur d'unités s'il est vide
+        if (unitFilterSelect && unitFilterSelect.options.length <= 1) {
+            console.log('Remplissage initial du sélecteur d\'unités');
+            populateUnitFilter();
         }
         
-        // Filtre par statut (actif/inactif)
-        if (statusFilterValue === 'active' && soldier.status !== 'Actif') {
-            return false;
-        } else if (statusFilterValue === 'inactive' && soldier.status === 'Actif') {
-            return false;
+        // Récupérer la formation sélectionnée
+        const formation = formationsData.find(f => f.id === selectedFormationId);
+        
+        if (!formation) {
+            console.error('Formation non trouvée avec ID:', selectedFormationId);
+            return;
         }
         
-        // Filtre par unité
-        let matchesUnit = unitFilterValue === 'all';
+        console.log('Formation sélectionnée pour le filtrage:', formation.name);
         
-        if (!matchesUnit) {
-            // Vérifier si le soldat est membre de l'unité
-            if (selectedUnitMembers.includes(soldier.id)) {
-                matchesUnit = true;
-            }
+        const searchTerm = searchInput.value.toLowerCase();
+        const filterValue = filterSelect.value;
+        const unitFilterValue = unitFilterSelect ? unitFilterSelect.value : 'all';
+        const statusFilterValue = statusFilterSelect ? statusFilterSelect.value : 'active'; // Par défaut, afficher uniquement les soldats actifs
+        
+        console.log('Critères de filtrage - Recherche:', searchTerm, 
+                    '| Filtre:', filterValue, 
+                    '| Unité:', unitFilterValue, 
+                    '| Statut:', statusFilterValue);
+        
+        // Vider la liste
+        soldiersList.innerHTML = '';
+        
+        // Récupérer les unités si nécessaire
+        let selectedUnitMembers = [];
+        let selectedUnitCommander = null;
+        let selectedUnitName = 'Toutes les unités';
+        
+        if (unitFilterValue !== 'all') {
+            const units = getAllUnits();
+            const selectedUnit = units.find(unit => unit.id === unitFilterValue);
             
-            // Vérifier si le soldat est commandant de l'unité
-            if (selectedUnitCommander === soldier.id) {
-                matchesUnit = true;
+            if (selectedUnit) {
+                selectedUnitName = selectedUnit.name || 'Unité sans nom';
+                console.log('Unité sélectionnée pour le filtrage:', selectedUnitName);
+                
+                // S'assurer que les membres existent
+                if (Array.isArray(selectedUnit.members)) {
+                    selectedUnitMembers = [...selectedUnit.members];
+                }
+                
+                // Ajouter le commandant s'il existe
+                if (selectedUnit.commander) {
+                    selectedUnitCommander = selectedUnit.commander;
+                    console.log('Commandant de l\'unité inclus dans le filtrage:', selectedUnitCommander);
+                }
+            } else {
+                console.warn('Unité non trouvée avec ID:', unitFilterValue);
             }
         }
         
-        if (!matchesUnit) return false;
+        // Afficher l'unité sélectionnée dans l'interface
+        const selectedUnitElement = document.getElementById('selected-unit-name');
+        if (selectedUnitElement) {
+            selectedUnitElement.textContent = selectedUnitName;
+        }
         
-        // Filtre par recherche (avec vérification des données)
-        if (searchTerm) {
-            const lastName = (soldier.lastName || '').toLowerCase();
-            const firstName = (soldier.firstName || '').toLowerCase();
-            const rank = (soldier.rank || '').toLowerCase();
-            const fullName = `${rank} ${lastName} ${firstName}`.toLowerCase();
+        // Vérifier et compléter les données des soldats pour éviter les erreurs
+        const safeSoldiers = validateAndFixSoldierData(allSoldiersData);
+        console.log('Nombre de soldats après validation:', safeSoldiers.length);
+        
+        // Filtrer les soldats
+        let filteredSoldiers = safeSoldiers.filter(soldier => {
+            // Exclure les soldats déjà participants si on est dans le contexte d'une formation
+            if (formation && formation.participants) {
+                const isParticipant = formation.participants.includes(soldier.id);
+                if (isParticipant) return false;
+            }
             
-            const matchesSearch = fullName.includes(searchTerm);
-            if (!matchesSearch) return false;
+            // Filtre par statut (actif/inactif)
+            if (statusFilterValue === 'active' && soldier.status !== 'Actif') {
+                return false;
+            } else if (statusFilterValue === 'inactive' && soldier.status === 'Actif') {
+                return false;
+            }
+            
+            // Filtre par unité
+            let matchesUnit = unitFilterValue === 'all';
+            
+            if (!matchesUnit) {
+                // Vérifier si le soldat est membre de l'unité
+                if (selectedUnitMembers.includes(soldier.id)) {
+                    matchesUnit = true;
+                }
+                
+                // Vérifier si le soldat est commandant de l'unité
+                if (selectedUnitCommander === soldier.id) {
+                    matchesUnit = true;
+                }
+            }
+            
+            if (!matchesUnit) return false;
+            
+            // Filtre par recherche (avec vérification des données)
+            if (searchTerm) {
+                const lastName = (soldier.lastName || '').toLowerCase();
+                const firstName = (soldier.firstName || '').toLowerCase();
+                const rank = (soldier.rank || '').toLowerCase();
+                const fullName = `${rank} ${lastName} ${firstName}`.toLowerCase();
+                
+                const matchesSearch = fullName.includes(searchTerm);
+                if (!matchesSearch) return false;
+            }
+            
+            // Filtre par disponibilité/éligibilité
+            if (filterValue === 'available') {
+                // Vérifier si le soldat est disponible (pas en mission, etc.)
+                return soldier.status === 'Actif';
+            } else if (filterValue === 'eligible' && formation) {
+                // Vérifier si le soldat est éligible (prérequis remplis)
+                return checkEligibility(soldier, formation);
+            }
+            
+            return true; // Si aucun filtre spécifique n'est appliqué
+        });
+        
+        console.log('Nombre de soldats après filtrage:', filteredSoldiers.length);
+        
+        // Trier les soldats
+        filteredSoldiers.sort((a, b) => {
+            // D'abord par statut (actifs en premier)
+            if (a.status === 'Actif' && b.status !== 'Actif') return -1;
+            if (a.status !== 'Actif' && b.status === 'Actif') return 1;
+            
+            // Ensuite par commandant (commandants en premier)
+            if (a.isCommander && !b.isCommander) return -1;
+            if (!a.isCommander && b.isCommander) return 1;
+            
+            // Ensuite par grade (du plus élevé au moins élevé)
+            const rankOrder = {
+                'Général': 1, 'Colonel': 2, 'Lieutenant-Colonel': 3, 'Commandant': 4,
+                'Capitaine': 5, 'Lieutenant': 6, 'Sous-Lieutenant': 7, 'Major': 8,
+                'Adjudant-Chef': 9, 'Adjudant': 10, 'Sergent-Chef': 11, 'Sergent': 12,
+                'Caporal-Chef': 13, 'Caporal': 14, 'Soldat de 1ère Classe': 15, 'Soldat': 16
+            };
+            
+            const rankA = rankOrder[a.rank] || 99;
+            const rankB = rankOrder[b.rank] || 99;
+            
+            if (rankA !== rankB) return rankA - rankB;
+            
+            // Enfin par nom
+            if (!a.lastName) return 1;
+            if (!b.lastName) return -1;
+            return a.lastName.localeCompare(b.lastName);
+        });
+        
+        // Marquer les commandants d'unité pour un affichage spécial
+        filteredSoldiers = markCommandersInSoldierList(filteredSoldiers);
+        console.log('Soldats filtrés avec commandants marqués:', filteredSoldiers.length);
+        
+        // Afficher les soldats filtrés
+        if (filteredSoldiers.length === 0) {
+            soldiersList.innerHTML = '<div class="no-soldiers">Aucun soldat ne correspond aux critères de recherche</div>';
+            return;
         }
         
-        // Filtre par disponibilité/éligibilité
-        if (filterValue === 'available') {
-            // Vérifier si le soldat est disponible (pas en mission, etc.)
-            return soldier.status === 'Actif';
-        } else if (filterValue === 'eligible' && formation) {
-            // Vérifier si le soldat est éligible (prérequis remplis)
-            return checkEligibility(soldier, formation);
+        // Créer les éléments pour chaque soldat
+        filteredSoldiers.forEach(soldier => {
+            const soldierItem = createSoldierItemForAssignment(soldier);
+            soldiersList.appendChild(soldierItem);
+        });
+        
+        // Afficher le nombre de soldats filtrés
+        const countElement = document.getElementById('filtered-soldiers-count');
+        if (countElement) {
+            countElement.textContent = `${filteredSoldiers.length} soldat(s) trouvé(s)`;
         }
-        
-        return true; // Si aucun filtre spécifique n'est appliqué
-    });
-    
-    console.log('Nombre de soldats après filtrage:', filteredSoldiers.length);
-    
-    // Trier les soldats
-    filteredSoldiers.sort((a, b) => {
-        // D'abord par statut (actifs en premier)
-        if (a.status === 'Actif' && b.status !== 'Actif') return -1;
-        if (a.status !== 'Actif' && b.status === 'Actif') return 1;
-        
-        // Ensuite par commandant (commandants en premier)
-        if (a.isCommander && !b.isCommander) return -1;
-        if (!a.isCommander && b.isCommander) return 1;
-        
-        // Ensuite par grade (du plus élevé au moins élevé)
-        const rankOrder = {
-            'Général': 1, 'Colonel': 2, 'Lieutenant-Colonel': 3, 'Commandant': 4,
-            'Capitaine': 5, 'Lieutenant': 6, 'Sous-Lieutenant': 7, 'Major': 8,
-            'Adjudant-Chef': 9, 'Adjudant': 10, 'Sergent-Chef': 11, 'Sergent': 12,
-            'Caporal-Chef': 13, 'Caporal': 14, 'Soldat de 1ère Classe': 15, 'Soldat': 16
-        };
-        
-        const rankA = rankOrder[a.rank] || 99;
-        const rankB = rankOrder[b.rank] || 99;
-        
-        if (rankA !== rankB) return rankA - rankB;
-        
-        // Enfin par nom
-        if (!a.lastName) return 1;
-        if (!b.lastName) return -1;
-        return a.lastName.localeCompare(b.lastName);
-    });
-    
-    // Marquer les commandants d'unité pour un affichage spécial
-    filteredSoldiers = markCommandersInSoldierList(filteredSoldiers);
-    console.log('Soldats filtrés avec commandants marqués:', filteredSoldiers.length);
-    
-    // Afficher les soldats filtrés
-    if (filteredSoldiers.length === 0) {
-        soldiersList.innerHTML = '<div class="no-soldiers">Aucun soldat ne correspond aux critères de recherche</div>';
-        return;
-    }
-    
-    // Créer les éléments pour chaque soldat
-    filteredSoldiers.forEach(soldier => {
-        const soldierItem = createSoldierItemForAssignment(soldier);
-        soldiersList.appendChild(soldierItem);
-    });
-    
-    // Afficher le nombre de soldats filtrés
-    const countElement = document.getElementById('filtered-soldiers-count');
-    if (countElement) {
-        countElement.textContent = `${filteredSoldiers.length} soldat(s) trouvé(s)`;
+    } catch (error) {
+        console.error('Erreur lors du filtrage des soldats:', error);
+        soldiersList.innerHTML = '<div class="no-soldiers">Erreur lors du chargement des soldats</div>';
     }
 }
 

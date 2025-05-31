@@ -1,5 +1,159 @@
 /* CSS pour la page dossier-soldat.html */
 
+/* Styles pour les onglets de formations */
+.formations-tabs {
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--gold);
+}
+
+.formation-tab-button {
+    background-color: var(--medium-bg);
+    color: var(--text-color);
+    border: none;
+    padding: 8px 15px;
+    margin-right: 5px;
+    cursor: pointer;
+    border-radius: 5px 5px 0 0;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.formation-tab-button:hover {
+    background-color: var(--dark-gold);
+    color: var(--dark-bg);
+}
+
+.formation-tab-button.active {
+    background-color: var(--gold);
+    color: var(--dark-bg);
+    font-weight: bold;
+}
+
+.formations-tab-content {
+    background-color: var(--light-bg);
+    border-radius: 0 5px 5px 5px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.formations-tab-pane {
+    display: none;
+}
+
+.formations-tab-pane.active {
+    display: block;
+}
+
+/* Styles pour les listes de formations */
+.formation-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: var(--medium-bg);
+    border-radius: 5px;
+    border-left: 3px solid var(--gold);
+}
+
+.formation-item:hover {
+    background-color: var(--dark-bg);
+}
+
+.formation-info {
+    flex-grow: 1;
+}
+
+.formation-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.formation-date {
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.formation-status {
+    display: flex;
+    gap: 10px;
+}
+
+.formation-status-badge {
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.status-assigned {
+    background-color: var(--info);
+}
+
+.status-completed {
+    background-color: var(--success);
+}
+
+.status-failed {
+    background-color: var(--danger);
+}
+
+.status-absent {
+    background-color: var(--warning);
+}
+
+.formation-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.formation-action-btn {
+    background-color: var(--medium-bg);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 3px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.formation-action-btn:hover {
+    background-color: var(--gold);
+    color: var(--dark-bg);
+}
+
+.formation-action-btn.validate {
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.formation-action-btn.validate:hover {
+    background-color: var(--success);
+    color: white;
+}
+
+.formation-action-btn.fail {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.formation-action-btn.fail:hover {
+    background-color: var(--danger);
+    color: white;
+}
+
+.formation-action-btn.absent {
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
+.formation-action-btn.absent:hover {
+    background-color: var(--warning);
+    color: var(--dark-bg);
+}
+
 .soldier-container {
     display: flex;
     flex-direction: column;

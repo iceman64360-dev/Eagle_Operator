@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test des Formations - Eagle Operator</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/formations.css">
+    <link rel="stylesheet" href="assets/css/dossier-soldat.css">
+    <style>
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            margin-top: 0;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            color: #2c3e50;
+        }
+        .test-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s;
+        }
+        .test-button:hover {
+            background-color: #2980b9;
+        }
+        .test-result {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+        }
+        .test-data {
+            font-family: monospace;
+            white-space: pre-wrap;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="assets/img/logo.png" alt="Eagle Operator Logo">
+            <h1>Eagle Operator</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Tableau de bord</a></li>
+                <li><a href="pages/soldats.html">Soldats</a></li>
+                <li><a href="pages/unites.html">Unités</a></li>
+                <li><a href="pages/formations.html">Formations</a></li>
+                <li><a href="pages/missions.html">Missions</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="test-container">
+        <h1>Test des Formations</h1>
+        <p>Cette page permet de tester le système de gestion des formations et leur affichage dans le dossier du soldat.</p>
+
+        <div class="test-section">
+            <h2>1. Créer des données de test</h2>
+            <button id="create-test-data" class="test-button">Créer des données de test</button>
+            <button id="reset-data" class="test-button">Réinitialiser toutes les données</button>
+            <div id="create-result" class="test-result">
+                Cliquez sur le bouton pour créer des données de test.
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Afficher les données actuelles</h2>
+            <button id="show-soldiers" class="test-button">Afficher les soldats</button>
+            <button id="show-formations" class="test-button">Afficher les formations</button>
+            <div id="data-result" class="test-result">
+                Cliquez sur un bouton pour afficher les données.
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Assigner des formations</h2>
+            <div class="form-group">
+                <label for="soldier-select">Soldat:</label>
+                <select id="soldier-select"></select>
+            </div>
+            <div class="form-group">
+                <label for="formation-select">Formation:</label>
+                <select id="formation-select"></select>
+            </div>
+            <button id="assign-formation" class="test-button">Assigner la formation</button>
+            <div id="assign-result" class="test-result">
+                Sélectionnez un soldat et une formation, puis cliquez sur le bouton pour assigner.
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. Changer le statut d'une formation</h2>
+            <div class="form-group">
+                <label for="soldier-status-select">Soldat:</label>
+                <select id="soldier-status-select"></select>
+            </div>
+            <div id="soldier-formations-container">
+                <p>Sélectionnez un soldat pour voir ses formations.</p>
+            </div>
+            <div id="status-result" class="test-result">
+                Sélectionnez un soldat pour voir ses formations et changer leur statut.
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>5. Ouvrir le dossier du soldat</h2>
+            <div class="form-group">
+                <label for="dossier-soldier-select">Soldat:</label>
+                <select id="dossier-soldier-select"></select>
+            </div>
+            <button id="open-dossier" class="test-button">Ouvrir le dossier</button>
+            <div id="dossier-result" class="test-result">
+                Sélectionnez un soldat et cliquez sur le bouton pour ouvrir son dossier.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser la page
+            loadData();
+            setupEventListeners();
+        });
+
+        // Charger les données
+        function loadData() {
+            const soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+            const formations = JSON.parse(localStorage.getItem('eagleOperator_formations') || '[]');
+
+            populateSelect('soldier-select', soldiers);
+            populateSelect('soldier-status-select', soldiers);
+            populateSelect('dossier-soldier-select', soldiers);
+            populateSelect('formation-select', formations);
+        }
+
+        // Configurer les écouteurs d'événements
+        function setupEventListeners() {
+            // Créer des données de test
+            document.getElementById('create-test-data').addEventListener('click', createTestData);
+            document.getElementById('reset-data').addEventListener('click', resetAllData);
+
+            // Afficher les données
+            document.getElementById('show-soldiers').addEventListener('click', showSoldiers);
+            document.getElementById('show-formations').addEventListener('click', showFormations);
+
+            // Assigner des formations
+            document.getElementById('assign-formation').addEventListener('click', assignFormation);
+
+            // Changer le statut d'une formation
+            document.getElementById('soldier-status-select').addEventListener('change', showSoldierFormations);
+
+            // Ouvrir le dossier du soldat
+            document.getElementById('open-dossier').addEventListener('click', openSoldierDossier);
+        }
+
+        // Remplir un sélecteur avec des données
+        function populateSelect(selectId, data) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '';
+
+            // Ajouter une option vide
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'Sélectionnez...';
+            select.appendChild(emptyOption);
+
+            // Ajouter les options
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                
+                // Déterminer le texte à afficher selon le type de données
+                if (item.lastName) {
+                    // C'est un soldat
+                    option.textContent = `${item.rank} ${item.lastName} ${item.firstName}`;
+                } else if (item.name) {
+                    // C'est une formation
+                    option.textContent = item.name;
+                } else {
+                    option.textContent = 'Inconnu';
+                }
+                
+                select.appendChild(option);
+            });
+        }
+
+        // Créer des données de test
+        function createTestData() {
+            const resultDiv = document.getElementById('create-result');
+            
+            try {
+                // Créer des formations de test si elles n'existent pas
+                let formations = JSON.parse(localStorage.getItem('eagleOperator_formations') || '[]');
+                
+                if (formations.length === 0) {
+                    formations = [
+                        {
+                            id: 'f1',
+                            name: 'Formation de base',
+                            type: 'Initiale',
+                            description: 'Formation initiale pour tous les soldats',
+                            duration: 5,
+                            capacity: 20,
+                            prerequisites: '',
+                            participants: []
+                        },
+                        {
+                            id: 'f2',
+                            name: 'Formation avancée',
+                            type: 'Spécialisation',
+                            description: 'Formation avancée pour les soldats expérimentés',
+                            duration: 10,
+                            capacity: 10,
+                            prerequisites: 'Formation de base',
+                            participants: []
+                        },
+                        {
+                            id: 'f3',
+                            name: 'Formation de leadership',
+                            type: 'Commandement',
+                            description: 'Formation pour les futurs commandants',
+                            duration: 15,
+                            capacity: 5,
+                            prerequisites: 'Formation avancée',
+                            participants: []
+                        }
+                    ];
+                    
+                    localStorage.setItem('eagleOperator_formations', JSON.stringify(formations));
+                }
+                
+                // Créer des soldats de test s'ils n'existent pas
+                let soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+                
+                if (soldiers.length === 0) {
+                    soldiers = [
+                        {
+                            id: 's1',
+                            rank: 'Soldat',
+                            lastName: 'Dupont',
+                            firstName: 'Jean',
+                            status: 'Actif',
+                            unit: 'u1',
+                            formations: [],
+                            historique: []
+                        },
+                        {
+                            id: 's2',
+                            rank: 'Caporal',
+                            lastName: 'Martin',
+                            firstName: 'Sophie',
+                            status: 'Actif',
+                            unit: 'u1',
+                            formations: [],
+                            historique: []
+                        },
+                        {
+                            id: 's3',
+                            rank: 'Sergent',
+                            lastName: 'Dubois',
+                            firstName: 'Pierre',
+                            status: 'Actif',
+                            unit: 'u2',
+                            formations: [],
+                            historique: []
+                        }
+                    ];
+                    
+                    localStorage.setItem('eagleOperator_soldiers', JSON.stringify(soldiers));
+                }
+                
+                // Créer des unités de test si elles n'existent pas
+                let units = JSON.parse(localStorage.getItem('eagleOperator_units') || '[]');
+                
+                if (units.length === 0) {
+                    units = [
+                        {
+                            id: 'u1',
+                            name: 'Alpha',
+                            type: 'Escouade',
+                            commander: 's2',
+                            members: ['s1', 's2']
+                        },
+                        {
+                            id: 'u2',
+                            name: 'Bravo',
+                            type: 'Escouade',
+                            commander: 's3',
+                            members: ['s3']
+                        }
+                    ];
+                    
+                    localStorage.setItem('eagleOperator_units', JSON.stringify(units));
+                }
+                
+                resultDiv.innerHTML = '<span class="success">Données de test créées avec succès !</span>';
+                
+                // Recharger les données dans les sélecteurs
+                loadData();
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Erreur lors de la création des données de test: ${error.message}</span>`;
+            }
+        }
+
+        // Réinitialiser toutes les données
+        function resetAllData() {
+            const resultDiv = document.getElementById('create-result');
+            
+            try {
+                localStorage.removeItem('eagleOperator_soldiers');
+                localStorage.removeItem('eagleOperator_formations');
+                localStorage.removeItem('eagleOperator_units');
+                
+                resultDiv.innerHTML = '<span class="success">Toutes les données ont été réinitialisées !</span>';
+                
+                // Recharger les données dans les sélecteurs
+                loadData();
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Erreur lors de la réinitialisation des données: ${error.message}</span>`;
+            }
+        }
+
+        // Afficher les soldats
+        function showSoldiers() {
+            const resultDiv = document.getElementById('data-result');
+            const soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+            
+            resultDiv.innerHTML = `
+                <h3>Soldats (${soldiers.length})</h3>
+                <div class="test-data">${JSON.stringify(soldiers, null, 2)}</div>
+            `;
+        }
+
+        // Afficher les formations
+        function showFormations() {
+            const resultDiv = document.getElementById('data-result');
+            const formations = JSON.parse(localStorage.getItem('eagleOperator_formations') || '[]');
+            
+            resultDiv.innerHTML = `
+                <h3>Formations (${formations.length})</h3>
+                <div class="test-data">${JSON.stringify(formations, null, 2)}</div>
+            `;
+        }
+
+        // Assigner une formation à un soldat
+        function assignFormation() {
+            const resultDiv = document.getElementById('assign-result');
+            const soldierId = document.getElementById('soldier-select').value;
+            const formationId = document.getElementById('formation-select').value;
+            
+            if (!soldierId || !formationId) {
+                resultDiv.innerHTML = '<span class="error">Veuillez sélectionner un soldat et une formation.</span>';
+                return;
+            }
+            
+            try {
+                // Récupérer les données
+                const soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+                const formations = JSON.parse(localStorage.getItem('eagleOperator_formations') || '[]');
+                
+                // Trouver le soldat et la formation
+                const soldierIndex = soldiers.findIndex(s => s.id === soldierId);
+                const formation = formations.find(f => f.id === formationId);
+                
+                if (soldierIndex === -1 || !formation) {
+                    resultDiv.innerHTML = '<span class="error">Soldat ou formation introuvable.</span>';
+                    return;
+                }
+                
+                // Vérifier si le soldat est déjà assigné à cette formation
+                if (formation.participants && formation.participants.includes(soldierId)) {
+                    resultDiv.innerHTML = '<span class="error">Ce soldat est déjà assigné à cette formation.</span>';
+                    return;
+                }
+                
+                // Ajouter le soldat à la formation
+                if (!formation.participants) {
+                    formation.participants = [];
+                }
+                formation.participants.push(soldierId);
+                
+                // Ajouter la formation au soldat
+                const soldier = soldiers[soldierIndex];
+                if (!soldier.formations) {
+                    soldier.formations = [];
+                }
+                
+                // Vérifier si la formation est déjà dans les formations du soldat
+                const existingFormation = soldier.formations.find(f => f.formationId === formationId);
+                if (!existingFormation) {
+                    soldier.formations.push({
+                        formationId: formationId,
+                        date: new Date().toISOString(),
+                        statut: 'assignee'
+                    });
+                }
+                
+                // Ajouter à l'historique du soldat
+                if (!soldier.historique) {
+                    soldier.historique = [];
+                }
+                
+                soldier.historique.push({
+                    date: new Date().toISOString(),
+                    type: 'formation',
+                    description: `Assigné à la formation "${formation.name}"`
+                });
+                
+                // Sauvegarder les modifications
+                localStorage.setItem('eagleOperator_formations', JSON.stringify(formations));
+                localStorage.setItem('eagleOperator_soldiers', JSON.stringify(soldiers));
+                
+                resultDiv.innerHTML = `<span class="success">Le soldat ${soldier.rank} ${soldier.lastName} a été assigné à la formation "${formation.name}" avec succès !</span>`;
+                
+                // Mettre à jour les sélecteurs
+                showSoldierFormations();
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Erreur lors de l'assignation: ${error.message}</span>`;
+            }
+        }
+
+        // Afficher les formations d'un soldat
+        function showSoldierFormations() {
+            const soldierId = document.getElementById('soldier-status-select').value;
+            const container = document.getElementById('soldier-formations-container');
+            
+            if (!soldierId) {
+                container.innerHTML = '<p>Sélectionnez un soldat pour voir ses formations.</p>';
+                return;
+            }
+            
+            try {
+                // Récupérer les données
+                const soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+                const formations = JSON.parse(localStorage.getItem('eagleOperator_formations') || '[]');
+                
+                // Trouver le soldat
+                const soldier = soldiers.find(s => s.id === soldierId);
+                
+                if (!soldier) {
+                    container.innerHTML = '<p class="error">Soldat introuvable.</p>';
+                    return;
+                }
+                
+                // Vérifier si le soldat a des formations
+                if (!soldier.formations || soldier.formations.length === 0) {
+                    container.innerHTML = '<p>Ce soldat n\'a aucune formation assignée.</p>';
+                    return;
+                }
+                
+                // Afficher les formations du soldat
+                let html = '<h3>Formations du soldat</h3>';
+                html += '<div class="formations-list">';
+                
+                soldier.formations.forEach(soldierFormation => {
+                    // Trouver les détails de la formation
+                    const formation = formations.find(f => f.id === soldierFormation.formationId);
+                    
+                    if (!formation) {
+                        return;
+                    }
+                    
+                    // Déterminer le statut et les boutons à afficher
+                    let statusBadge = '';
+                    let actionButtons = '';
+                    
+                    switch (soldierFormation.statut) {
+                        case 'assignee':
+                            statusBadge = '<span class="formation-status-badge status-assigned">Assignée</span>';
+                            actionButtons = `
+                                <button class="formation-action-btn validate" data-action="validate" data-formation-id="${formation.id}" data-soldier-id="${soldier.id}">Valider</button>
+                                <button class="formation-action-btn fail" data-action="fail" data-formation-id="${formation.id}" data-soldier-id="${soldier.id}">Échouer</button>
+                                <button class="formation-action-btn absent" data-action="absent" data-formation-id="${formation.id}" data-soldier-id="${soldier.id}">Absent</button>
+                            `;
+                            break;
+                        case 'validee':
+                            statusBadge = '<span class="formation-status-badge status-completed">Validée</span>';
+                            break;
+                        case 'echouee':
+                            statusBadge = '<span class="formation-status-badge status-failed">Échouée</span>';
+                            break;
+                        case 'absent':
+                            statusBadge = '<span class="formation-status-badge status-absent">Absent</span>';
+                            break;
+                    }
+                    
+                    // Créer l'élément HTML
+                    html += `
+                        <div class="formation-item" data-formation-id="${formation.id}">
+                            <div class="formation-info">
+                                <div class="formation-title">
+                                    ${formation.name}
+                                </div>
+                                <div class="formation-date">
+                                    Date: ${formatDate(soldierFormation.date)}
+                                </div>
+                            </div>
+                            <div class="formation-status">
+                                ${statusBadge}
+                            </div>
+                            <div class="formation-actions">
+                                ${actionButtons}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                container.innerHTML = html;
+                
+                // Ajouter les écouteurs d'événements pour les boutons d'action
+                setupFormationActionButtons();
+                
+            } catch (error) {
+                container.innerHTML = `<p class="error">Erreur lors de l'affichage des formations: ${error.message}</p>`;
+            }
+        }
+
+        // Configurer les boutons d'action pour les formations
+        function setupFormationActionButtons() {
+            // Boutons de validation
+            const validateButtons = document.querySelectorAll('.formation-action-btn.validate');
+            validateButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const formationId = button.dataset.formationId;
+                    const soldierId = button.dataset.soldierId;
+                    updateFormationStatus(soldierId, formationId, 'validee');
+                });
+            });
+            
+            // Boutons d'échec
+            const failButtons = document.querySelectorAll('.formation-action-btn.fail');
+            failButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const formationId = button.dataset.formationId;
+                    const soldierId = button.dataset.soldierId;
+                    updateFormationStatus(soldierId, formationId, 'echouee');
+                });
+            });
+            
+            // Boutons d'absence
+            const absentButtons = document.querySelectorAll('.formation-action-btn.absent');
+            absentButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const formationId = button.dataset.formationId;
+                    const soldierId = button.dataset.soldierId;
+                    updateFormationStatus(soldierId, formationId, 'absent');
+                });
+            });
+        }
+
+        // Mettre à jour le statut d'une formation pour un soldat
+        function updateFormationStatus(soldierId, formationId, newStatus) {
+            const resultDiv = document.getElementById('status-result');
+            
+            try {
+                // Récupérer les données
+                const soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+                const formations = JSON.parse(localStorage.getItem('eagleOperator_formations') || '[]');
+                
+                // Trouver le soldat et la formation
+                const soldierIndex = soldiers.findIndex(s => s.id === soldierId);
+                const formation = formations.find(f => f.id === formationId);
+                
+                if (soldierIndex === -1 || !formation) {
+                    resultDiv.innerHTML = '<span class="error">Soldat ou formation introuvable.</span>';
+                    return;
+                }
+                
+                const soldier = soldiers[soldierIndex];
+                
+                // Vérifier si le soldat a des formations
+                if (!soldier.formations) {
+                    resultDiv.innerHTML = '<span class="error">Ce soldat n\'a aucune formation.</span>';
+                    return;
+                }
+                
+                // Trouver la formation dans les formations du soldat
+                const formationIndex = soldier.formations.findIndex(f => f.formationId === formationId);
+                
+                if (formationIndex === -1) {
+                    resultDiv.innerHTML = '<span class="error">Cette formation n\'est pas assignée à ce soldat.</span>';
+                    return;
+                }
+                
+                // Mettre à jour le statut de la formation
+                soldier.formations[formationIndex].statut = newStatus;
+                soldier.formations[formationIndex].date_validation = new Date().toISOString();
+                
+                // Ajouter à l'historique du soldat
+                if (!soldier.historique) {
+                    soldier.historique = [];
+                }
+                
+                let statusText = '';
+                switch (newStatus) {
+                    case 'validee':
+                        statusText = 'validé';
+                        break;
+                    case 'echouee':
+                        statusText = 'échoué';
+                        break;
+                    case 'absent':
+                        statusText = 'absent';
+                        break;
+                }
+                
+                soldier.historique.push({
+                    date: new Date().toISOString(),
+                    type: 'formation',
+                    description: `A ${statusText} la formation "${formation.name}"`
+                });
+                
+                // Sauvegarder les modifications
+                localStorage.setItem('eagleOperator_soldiers', JSON.stringify(soldiers));
+                
+                resultDiv.innerHTML = `<span class="success">Le statut de la formation "${formation.name}" a été mis à jour avec succès !</span>`;
+                
+                // Mettre à jour l'affichage
+                showSoldierFormations();
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">Erreur lors de la mise à jour du statut: ${error.message}</span>`;
+            }
+        }
+
+        // Ouvrir le dossier du soldat
+        function openSoldierDossier() {
+            const resultDiv = document.getElementById('dossier-result');
+            const soldierId = document.getElementById('dossier-soldier-select').value;
+            
+            if (!soldierId) {
+                resultDiv.innerHTML = '<span class="error">Veuillez sélectionner un soldat.</span>';
+                return;
+            }
+            
+            // Rediriger vers le dossier du soldat
+            window.location.href = `pages/dossier-soldat.html?id=${soldierId}`;
+        }
+
+        // Formater une date pour l'affichage
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString;
+            
+            return date.toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+    </script>
+</body>
+</html>

@@ -18,8 +18,29 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function init() {
         setupTabNavigation();
+        setupFormationTabs();
         setupCloseButton();
         checkUrlParams();
+    }
+    
+    /**
+     * Configure la navigation par onglets pour les formations
+     */
+    function setupFormationTabs() {
+        const formationTabButtons = document.querySelectorAll('.formation-tab-button');
+        
+        formationTabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Désactiver tous les onglets
+                formationTabButtons.forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.formations-tab-pane').forEach(pane => pane.classList.remove('active'));
+                
+                // Activer l'onglet cliqué
+                button.classList.add('active');
+                const tabId = `formations-${button.dataset.tab}`;
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
     }
     
     /**
@@ -177,21 +198,8 @@ document.addEventListener('DOMContentLoaded', () => {
             personalInfoDiv.innerHTML = personalInfoHTML || '<p>Aucune information personnelle disponible.</p>';
         }
         
-        // Formations suivies
-        const formationsDiv = document.getElementById('formations-list');
-        if (formationsDiv) {
-            if (soldier.formations_suivies && soldier.formations_suivies.length > 0) {
-                let formationsHTML = '<ul>';
-                soldier.formations_suivies.forEach(formation => {
-                    // Rendre les noms de formations cliquables
-                    formationsHTML += `<li><a href="formations.html?id=${formation.id}" class="clickable-link">${formation.nom}</a> - ${formatDate(formation.date)}</li>`;
-                });
-                formationsHTML += '</ul>';
-                formationsDiv.innerHTML = formationsHTML;
-            } else {
-                formationsDiv.innerHTML = '<p>Aucune formation suivie.</p>';
-            }
-        }
+        // Formations
+        displaySoldierFormations(soldier);
         
         // Missions effectuées
         const missionsDiv = document.getElementById('missions-list');
@@ -284,8 +292,308 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function formatDate(dateString) {
         if (!dateString) return '';
+        
         const date = new Date(dateString);
-        return date.toLocaleDateString('fr-FR');
+        if (isNaN(date.getTime())) return dateString; // Si la date est invalide, retourner la chaîne d'origine
+        
+        return date.toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    }
+    
+    /**
+     * Affiche les formations du soldat (assignées, validées, échouées)
+     * @param {Object} soldier - Le soldat dont on veut afficher les formations
+     */
+    function displaySoldierFormations(soldier) {
+        // Récupérer les formations depuis le localStorage
+        const formations = JSON.parse(localStorage.getItem('eagleOperator_formations') || '[]');
+        
+        // Récupérer les formations du soldat
+        const soldierFormations = soldier.formations || [];
+        
+        // Diviser les formations par statut
+        const assignedFormations = soldierFormations.filter(f => f.statut === 'assignee');
+        const completedFormations = soldierFormations.filter(f => f.statut === 'validee');
+        const failedFormations = soldierFormations.filter(f => 
+            f.statut === 'echouee' || f.statut === 'absent');
+        
+        // Afficher les formations assignées
+        displayFormationsByStatus('assigned', assignedFormations, formations, soldier);
+        
+        // Afficher les formations validées
+        displayFormationsByStatus('completed', completedFormations, formations, soldier);
+        
+        // Afficher les formations échouées/absences
+        displayFormationsByStatus('failed', failedFormations, formations, soldier);
+    }
+    
+    /**
+     * Affiche les formations d'un soldat selon leur statut
+     * @param {string} statusType - Type de statut ('assigned', 'completed', 'failed')
+     * @param {Array} soldierFormations - Formations du soldat avec ce statut
+     * @param {Array} allFormations - Toutes les formations disponibles
+     * @param {Object} soldier - Le soldat concerné
+     */
+    function displayFormationsByStatus(statusType, soldierFormations, allFormations, soldier) {
+        const containerID = `formations-${statusType}-list`;
+        const container = document.getElementById(containerID);
+        
+        if (!container) return;
+        
+        if (soldierFormations.length === 0) {
+            let message = '';
+            switch (statusType) {
+                case 'assigned':
+                    message = 'Aucune formation assignée.';
+                    break;
+                case 'completed':
+                    message = 'Aucune formation validée.';
+                    break;
+                case 'failed':
+                    message = 'Aucune formation échouée ou absence.';
+                    break;
+            }
+            container.innerHTML = `<p>${message}</p>`;
+            return;
+        }
+        
+        let html = '';
+        
+        soldierFormations.forEach(soldierFormation => {
+            // Trouver les détails complets de la formation
+            let formationDetails = allFormations.find(f => f.id === soldierFormation.formationId) || {
+                id: soldierFormation.formationId || 'unknown',
+                nom: soldierFormation.nom || 'Formation inconnue',
+                name: soldierFormation.nom || 'Formation inconnue',
+                description: 'Détails non disponibles'
+            };
+            
+            // Harmoniser les propriétés (certaines formations utilisent 'name', d'autres 'nom')
+            if (!formationDetails.nom && formationDetails.name) {
+                formationDetails.nom = formationDetails.name;
+            } else if (!formationDetails.name && formationDetails.nom) {
+                formationDetails.name = formationDetails.nom;
+            }
+            
+            console.log(`Formation trouvée pour le soldat: ${formationDetails.nom || formationDetails.name || 'Inconnue'} (ID: ${formationDetails.id})`);
+            
+            // Créer l'élément HTML pour la formation
+            html += createFormationItemHTML(formationDetails, soldierFormation, statusType, soldier.id);
+        });
+        
+        container.innerHTML = html;
+        
+        // Ajouter les écouteurs d'événements pour les boutons d'action
+        if (statusType === 'assigned') {
+            setupFormationActionButtons(container, soldier.id);
+        }
+    }
+    
+    /**
+     * Crée le HTML pour un élément de formation
+     * @param {Object} formation - Détails de la formation
+     * @param {Object} soldierFormation - Données de la formation pour ce soldat
+     * @param {string} statusType - Type de statut ('assigned', 'completed', 'failed')
+     * @param {string} soldierId - ID du soldat
+     * @returns {string} HTML de l'élément de formation
+     */
+    function createFormationItemHTML(formation, soldierFormation, statusType, soldierId) {
+        let statusBadge = '';
+        let actionsHTML = '';
+        
+        // Déterminer le badge de statut et les actions disponibles
+        switch (statusType) {
+            case 'assigned':
+                statusBadge = '<span class="formation-status-badge status-assigned">Assignée</span>';
+                actionsHTML = `
+                    <div class="formation-actions">
+                        <button class="formation-action-btn validate" data-action="validate" data-formation-id="${formation.id}" data-soldier-id="${soldierId}">Valider</button>
+                        <button class="formation-action-btn fail" data-action="fail" data-formation-id="${formation.id}" data-soldier-id="${soldierId}">Échouer</button>
+                        <button class="formation-action-btn absent" data-action="absent" data-formation-id="${formation.id}" data-soldier-id="${soldierId}">Absent</button>
+                    </div>
+                `;
+                break;
+            case 'completed':
+                statusBadge = '<span class="formation-status-badge status-completed">Validée</span>';
+                break;
+            case 'failed':
+                if (soldierFormation.statut === 'echouee') {
+                    statusBadge = '<span class="formation-status-badge status-failed">Échouée</span>';
+                } else {
+                    statusBadge = '<span class="formation-status-badge status-absent">Absent</span>';
+                }
+                break;
+        }
+        
+        // S'assurer que les propriétés nécessaires existent
+        const formationId = formation.id || soldierFormation.formationId || 'unknown';
+        const formationName = formation.nom || formation.name || soldierFormation.nom || 'Formation inconnue';
+        const formationDate = soldierFormation.date || new Date().toISOString();
+        
+        // Créer l'élément HTML
+        return `
+            <div class="formation-item" data-formation-id="${formationId}">
+                <div class="formation-info">
+                    <div class="formation-title">
+                        <a href="formations.html?id=${formationId}" class="clickable-link">${formationName}</a>
+                    </div>
+                    <div class="formation-date">
+                        Date: ${formatDate(formationDate)}
+                    </div>
+                </div>
+                <div class="formation-status">
+                    ${statusBadge}
+                </div>
+                ${actionsHTML}
+            </div>
+        `;
+    }
+    
+    /**
+     * Configure les boutons d'action pour les formations
+     * @param {HTMLElement} container - Conteneur des formations
+     * @param {string} soldierId - ID du soldat
+     */
+    function setupFormationActionButtons(container, soldierId) {
+        // Boutons de validation
+        const validateButtons = container.querySelectorAll('.formation-action-btn.validate');
+        validateButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const formationId = button.dataset.formationId;
+                updateFormationStatus(soldierId, formationId, 'validee');
+            });
+        });
+        
+        // Boutons d'échec
+        const failButtons = container.querySelectorAll('.formation-action-btn.fail');
+        failButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const formationId = button.dataset.formationId;
+                updateFormationStatus(soldierId, formationId, 'echouee');
+            });
+        });
+        
+        // Boutons d'absence
+        const absentButtons = container.querySelectorAll('.formation-action-btn.absent');
+        absentButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const formationId = button.dataset.formationId;
+                updateFormationStatus(soldierId, formationId, 'absent');
+            });
+        });
+    }
+    
+    /**
+     * Met à jour le statut d'une formation pour un soldat
+     * @param {string} soldierId - ID du soldat
+     * @param {string} formationId - ID de la formation
+     * @param {string} newStatus - Nouveau statut ('validee', 'echouee', 'absent')
+     */
+    function updateFormationStatus(soldierId, formationId, newStatus) {
+        // Récupérer les données des soldats
+        const soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+        const soldierIndex = soldiers.findIndex(s => s.id === soldierId);
+        
+        if (soldierIndex === -1) {
+            console.error(`Soldat avec ID ${soldierId} non trouvé`);
+            return;
+        }
+        
+        const soldier = soldiers[soldierIndex];
+        
+        // Initialiser le tableau des formations si nécessaire
+        if (!soldier.formations) {
+            soldier.formations = [];
+        }
+        
+        // Trouver la formation dans les formations du soldat
+        const formationIndex = soldier.formations.findIndex(f => f.formationId === formationId);
+        
+        if (formationIndex === -1) {
+            console.error(`Formation avec ID ${formationId} non trouvée pour le soldat ${soldierId}`);
+            return;
+        }
+        
+        // Mettre à jour le statut de la formation
+        soldier.formations[formationIndex].statut = newStatus;
+        soldier.formations[formationIndex].date_validation = new Date().toISOString();
+        
+        // Ajouter à l'historique du soldat
+        if (!soldier.historique) {
+            soldier.historique = [];
+        }
+        
+        // Récupérer les détails de la formation
+        const formations = JSON.parse(localStorage.getItem('eagleOperator_formations') || '[]');
+        let formation = formations.find(f => f.id === formationId) || { 
+            id: formationId,
+            nom: 'Formation inconnue',
+            name: 'Formation inconnue'
+        };
+        
+        // Harmoniser les propriétés (certaines formations utilisent 'name', d'autres 'nom')
+        if (!formation.nom && formation.name) {
+            formation.nom = formation.name;
+        } else if (!formation.name && formation.nom) {
+            formation.name = formation.nom;
+        }
+        
+        // Utiliser le nom de la formation depuis les données du soldat si disponible
+        const soldierFormation = soldier.formations[formationIndex];
+        if (soldierFormation.nom) {
+            formation.nom = soldierFormation.nom;
+            formation.name = soldierFormation.nom;
+        }
+        
+        console.log(`Mise à jour du statut de la formation ${formation.nom || formation.name} pour le soldat ${soldier.lastName} à ${newStatus}`);
+        
+        let statusText = '';
+        switch (newStatus) {
+            case 'validee':
+                statusText = 'validé';
+                break;
+            case 'echouee':
+                statusText = 'échoué';
+                break;
+            case 'absent':
+                statusText = 'absent';
+                break;
+        }
+        
+        const eventDescription = `A ${statusText} la formation "${formation.nom || formation.name}"`;
+        
+        // Mettre à jour historique (ancienne structure)
+        soldier.historique.push({
+            date: new Date().toISOString(),
+            type: 'formation',
+            description: eventDescription
+        });
+        
+        // Mettre à jour history (nouvelle structure) pour compatibilité
+        if (!soldier.history) {
+            soldier.history = [];
+        }
+        
+        soldier.history.push({
+            date: new Date().toISOString(),
+            type: 'formation',
+            event: eventDescription
+        });
+        
+        // Sauvegarder les modifications
+        soldiers[soldierIndex] = soldier;
+        localStorage.setItem('eagleOperator_soldiers', JSON.stringify(soldiers));
+        
+        // Mettre à jour l'affichage
+        displaySoldierFormations(soldier);
+        
+        // Mettre à jour l'historique si affiché
+        if (typeof displayHistory === 'function') {
+            displayHistory(soldier);
+        }
     }
     
     // Initialiser la page

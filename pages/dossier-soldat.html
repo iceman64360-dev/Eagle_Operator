@@ -76,9 +76,28 @@
                             </div>
                         </div>
                         <div class="info-section">
-                            <h3>Formations suivies</h3>
-                            <div id="formations-list" class="info-content">
-                                <!-- Contenu dynamique -->
+                            <h3>Formations</h3>
+                            <div class="formations-tabs">
+                                <button class="formation-tab-button active" data-tab="assigned">Formations assignées</button>
+                                <button class="formation-tab-button" data-tab="completed">Formations validées</button>
+                                <button class="formation-tab-button" data-tab="failed">Formations échouées/absences</button>
+                            </div>
+                            <div class="formations-tab-content">
+                                <div id="formations-assigned" class="formations-tab-pane active">
+                                    <div id="formations-assigned-list" class="info-content">
+                                        <!-- Contenu dynamique des formations assignées -->
+                                    </div>
+                                </div>
+                                <div id="formations-completed" class="formations-tab-pane">
+                                    <div id="formations-completed-list" class="info-content">
+                                        <!-- Contenu dynamique des formations validées -->
+                                    </div>
+                                </div>
+                                <div id="formations-failed" class="formations-tab-pane">
+                                    <div id="formations-failed-list" class="info-content">
+                                        <!-- Contenu dynamique des formations échouées/absences -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="info-section">
