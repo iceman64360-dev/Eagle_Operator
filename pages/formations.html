@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eagle Company - Formations</title>
     <link rel="stylesheet" href="../assets/css/style.css"> <!-- Styles globaux -->
+    <link rel="stylesheet" href="../assets/css/formations.css"> <!-- Styles spécifiques aux formations -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
@@ -23,14 +25,156 @@
         </nav>
     </header>
 
-    <main>
+    <main class="formations-container">
+        <div class="formations-header">
             <h1>Catalogue des Formations</h1>
-            <p>Le contenu spécifique à la gestion et à l'affichage des formations sera développé ici.</p>
-            <!-- Exemple: Liste des formations, détails, conditions, bouton d'inscription, etc. -->
-        </main>
+            <div class="formations-actions">
+                <button id="btn-add-formation" class="military-btn">Ajouter une formation</button>
+                <div class="search-container">
+                    <input type="text" id="formation-search" placeholder="Rechercher une formation..." class="military-input">
+                </div>
+                <div class="filter-container">
+                    <select id="formation-type-filter" class="military-select" aria-label="Filtrer par type de formation" title="Filtrer par type de formation">
+                        <option value="all">Tous les types</option>
+                        <option value="combat">Combat</option>
+                        <option value="tactique">Tactique</option>
+                        <option value="medical">Médical</option>
+                        <option value="technique">Technique</option>
+                        <option value="leadership">Leadership</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="formations-grid" id="formations-grid">
+            <!-- Les cartes de formation seront générées dynamiquement ici -->
+            <div class="formation-card formation-placeholder">
+                <h3>Chargement des formations...</h3>
+            </div>
+        </div>
+
+        <!-- Modale détail formation -->
+        <div id="formation-detail-modal" class="modal-bg hidden-modal">
+            <div class="modal military-modal formation-detail-modal">
+                <div class="modal-header-container">
+                    <h2 id="formation-detail-title">Détail de la Formation</h2>
+                    <button class="close-modal-btn" id="close-formation-detail">Fermer</button>
+                </div>
+                <div class="formation-detail-content">
+                    <div class="formation-info">
+                        <div class="formation-type-badge" id="formation-detail-type">Combat</div>
+                        <p class="formation-description" id="formation-detail-description"></p>
+                        <div class="formation-metadata">
+                            <div class="metadata-item">
+                                <span class="metadata-label">Durée :</span>
+                                <span id="formation-detail-duration"></span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="metadata-label">Prérequis :</span>
+                                <span id="formation-detail-prerequisites"></span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="metadata-label">Capacité :</span>
+                                <span id="formation-detail-capacity"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="formation-participants">
+                        <h3>Participants</h3>
+                        <div class="participants-list" id="formation-participants-list">
+                            <!-- Liste des participants générée dynamiquement -->
+                        </div>
+                    </div>
+                    <div class="formation-actions">
+                        <button id="btn-edit-formation" class="military-btn">Modifier</button>
+                        <button id="btn-assign-soldiers" class="military-btn gold-btn">Assigner des soldats</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modale ajout/édition formation -->
+        <div id="formation-edit-modal" class="modal-bg hidden-modal">
+            <div class="modal military-modal">
+                <div class="modal-header-container">
+                    <h2 id="formation-edit-title">Ajouter une Formation</h2>
+                    <button class="close-modal-btn" id="close-formation-edit">Fermer</button>
+                </div>
+                <form id="formation-form">
+                    <div class="form-group">
+                        <label for="formation-name">Nom de la formation</label>
+                        <input type="text" id="formation-name" class="military-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="formation-type">Type</label>
+                        <select id="formation-type" class="military-select" required>
+                            <option value="">Sélectionner un type</option>
+                            <option value="combat">Combat</option>
+                            <option value="tactique">Tactique</option>
+                            <option value="medical">Médical</option>
+                            <option value="technique">Technique</option>
+                            <option value="leadership">Leadership</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="formation-description">Description</label>
+                        <textarea id="formation-description" class="military-textarea" rows="4" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="formation-duration">Durée (jours)</label>
+                            <input type="number" id="formation-duration" class="military-input" min="1" required>
+                        </div>
+                        <div class="form-group half">
+                            <label for="formation-capacity">Capacité (places)</label>
+                            <input type="number" id="formation-capacity" class="military-input" min="1" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="formation-prerequisites">Prérequis</label>
+                        <input type="text" id="formation-prerequisites" class="military-input" placeholder="Ex: Formation de base, Grade minimum...">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancel-formation" class="military-btn cancel-btn">Annuler</button>
+                        <button type="submit" class="military-btn gold-btn">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modale assignation de soldats -->
+        <div id="assign-soldiers-modal" class="modal-bg hidden-modal">
+            <div class="modal military-modal">
+                <div class="modal-header-container">
+                    <h2>Assigner des Soldats à la Formation</h2>
+                    <button class="close-modal-btn" id="close-assign-soldiers">Fermer</button>
+                </div>
+                <div class="assign-soldiers-content">
+                    <div class="search-filter-container">
+                        <input type="text" id="soldier-search" class="military-input" placeholder="Rechercher un soldat...">
+                        <select id="soldier-filter" class="military-select" aria-label="Filtrer les soldats" title="Filtrer les soldats">
+                            <option value="all">Tous les soldats</option>
+                            <option value="available">Disponibles uniquement</option>
+                            <option value="eligible">Éligibles uniquement</option>
+                        </select>
+                    </div>
+                    <div class="soldiers-list" id="assignable-soldiers-list">
+                        <!-- Liste des soldats générée dynamiquement -->
+                    </div>
+                    <div class="assign-actions">
+                        <button type="button" id="cancel-assign" class="military-btn cancel-btn">Annuler</button>
+                        <button type="button" id="confirm-assign" class="military-btn gold-btn">Confirmer l'assignation</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <footer>
         <p>&copy; 2025 Eagle Company - Tous droits réservés.</p>
     </footer>
+
+    <!-- Scripts -->
+    <script src="../assets/js/formationManager.js"></script>
 </body>
 </html>
