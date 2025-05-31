@@ -673,6 +673,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const cancelButton = document.getElementById('cancel-promotion');
         const newGradeSelect = document.getElementById('new-grade');
         
+        // Gérer le bouton d'annulation
+        cancelButton.onclick = function() {
+            // Fermer la boîte de dialogue
+            document.body.removeChild(dialog);
+        };
+        
         confirmButton.onclick = function() {
             const newGrade = newGradeSelect.value;
             if (newGrade !== soldier.grade) {
