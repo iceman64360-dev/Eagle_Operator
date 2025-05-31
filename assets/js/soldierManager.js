@@ -247,84 +247,88 @@ function displaySoldiers(soldiersToDisplay) {
 
     soldiersToDisplay.forEach(soldier => {
         const card = document.createElement('div');
-        let cardClasses = 'soldier-card';
-        
+        card.className = 'soldat-card';
         card.setAttribute('data-id', soldier.id);
-        
-        if (soldier.grade) {
-            const gradeClass = soldier.grade.replace(/\s+/g, '-').toLowerCase();
-            cardClasses += ` grade-${gradeClass}`;
-        }
-        
+
+        // Badge couleur statut
+        let statutBadgeClass = 'soldat-card-badge default';
         if (soldier.statut) {
-            const statutClass = soldier.statut.toLowerCase().replace(/\s+/g, '-');
-            cardClasses += ` statut-${statutClass}`;
-            if (statutClass === 'recrue') {
-                cardClasses += ' recrue';
+            const statutLower = soldier.statut.toLowerCase();
+            switch(statutLower) {
+                case 'actif': statutBadgeClass = 'soldat-card-badge actif'; break;
+                case 'inactif': case 'retraite': case 'transféré': statutBadgeClass = 'soldat-card-badge inactif'; break;
+                case 'permission': case 'blessé': statutBadgeClass = 'soldat-card-badge permission'; break;
+                case 'recrue': case 'en formation': statutBadgeClass = 'soldat-card-badge recrue'; break;
+                default: statutBadgeClass = 'soldat-card-badge default';
             }
         }
-        
-        card.className = cardClasses;
-        
-        const role = getSoldierRole(soldier.id); // Assumes getSoldierRole is defined and returns {isCommandant, isAdjoint, unitName, unitId}
+
+        // Rôle
+        const role = getSoldierRole(soldier.id);
         let roleHtml = '';
         if (role.isCommandant) {
-            roleHtml = `<p class="soldier-role commandant"><strong>Rôle:</strong> Commandant de ${role.unitName}</p>`;
+            roleHtml = `<span class="soldier-role commandant">Commandant de ${role.unitName}</span>`;
         } else if (role.isAdjoint) {
-            roleHtml = `<p class="soldier-role adjoint"><strong>Rôle:</strong> Adjoint de ${role.unitName}</p>`;
+            roleHtml = `<span class="soldier-role adjoint">Adjoint de ${role.unitName}</span>`;
         }
-        
+
+        // Unité
         let displayUnitName = soldier.unité || 'N/A';
         let unitLinkHtml = displayUnitName;
         const unitsData = JSON.parse(localStorage.getItem('eagleOperator_units') || '[]');
         const assignedUnit = unitsData.find(u => u.id_unite === soldier.unité || u.nom === soldier.unité);
-
         if (assignedUnit) {
             displayUnitName = assignedUnit.nom;
             unitLinkHtml = `<a href="unites.html?unit=${assignedUnit.id_unite}" class="unit-link" data-unit-id="${assignedUnit.id_unite}">${displayUnitName}</a>`;
         } else if (soldier.unité && soldier.unité !== 'N/A') {
-             // Fallback if unit ID is not found but name exists, maybe it's just a name
             displayUnitName = soldier.unité;
             unitLinkHtml = displayUnitName;
         }
 
-        let unitHtml = `<p><strong>Unité:</strong> ${unitLinkHtml}</p>`;
-        
-        let photoHtml = ''; // Photos removed as per previous context
-        
-        let statutColorClass = '';
-        if (soldier.statut) {
-            const statutLower = soldier.statut.toLowerCase();
-            switch(statutLower) {
-                case 'actif': statutColorClass = 'statut-color-actif'; break;
-                case 'inactif': case 'retraite': case 'transféré': statutColorClass = 'statut-color-inactif'; break;
-                case 'permission': case 'blessé': statutColorClass = 'statut-color-permission'; break;
-                case 'recrue': case 'en formation': statutColorClass = 'statut-color-recrue'; break;
-                default: statutColorClass = 'statut-color-default';
-            }
-        }
-        
         card.innerHTML = `
-            ${photoHtml}
-            <h3>${soldier.pseudo || 'N/A'}</h3> 
-            <p><strong>ID:</strong> ${soldier.id || 'N/A'}</p>
-            <p><strong>Grade:</strong> ${soldier.grade || 'N/A'}</p>
-            ${unitHtml}
-            <p><strong>Statut:</strong> <span class="${statutColorClass}">${soldier.statut || 'N/A'}</span></p>
-            ${roleHtml}
-            <div class="soldier-actions">
-                <button class="delete-btn">Supprimer</button>
+            <div class="soldat-card-header">
+                <span class="pseudo">${soldier.pseudo || 'N/A'}</span>
+                <span class="grade">${soldier.grade || ''}</span>
+                <span class="${statutBadgeClass}">${soldier.statut || 'N/A'}</span>
+            </div>
+            <div class="soldat-card-body">
+                <div><strong>ID:</strong> ${soldier.id || 'N/A'}</div>
+                <div><strong>Unité:</strong> ${unitLinkHtml}</div>
+                <div>${roleHtml}</div>
+            </div>
+            <div class="soldat-card-footer">
+                <button class="military-btn dossier-btn">Dossier</button>
+                <button class="military-btn delete-btn">Supprimer</button>
             </div>
         `;
-        
+
+        // Clic sur la carte (hors boutons) => ouvrir dossier
         card.addEventListener('click', (event) => {
-            // Ensure click is not on the delete button itself or its children
-            if (event.target.closest('.delete-btn')) {
-                return;
-            }
+            if (event.target.closest('.delete-btn')) return;
+            if (event.target.closest('.dossier-btn')) return;
             voirDossier(soldier.id);
         });
 
+        // Bouton dossier
+        const dossierBtn = card.querySelector('.dossier-btn');
+        if (dossierBtn) {
+            dossierBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                voirDossier(soldier.id);
+            });
+        }
+        // Bouton supprimer
+        const deleteButton = card.querySelector('.delete-btn');
+        if (deleteButton) {
+            deleteButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                supprimerSoldat(soldier.id);
+            });
+        }
+        soldierListDiv.appendChild(card);
+        
+        soldierListDiv.appendChild(card);
+        
         const deleteButton = card.querySelector('.delete-btn');
         if (deleteButton) {
             deleteButton.addEventListener('click', (event) => {
