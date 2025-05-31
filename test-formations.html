@@ -326,7 +326,12 @@
                     ];
                     
                     localStorage.setItem('eagleOperator_units', JSON.stringify(units));
+                    console.log('Unités créées dans localStorage:', units);
                 }
+                
+                // Vérifier que les unités sont bien dans le localStorage
+                const savedUnits = JSON.parse(localStorage.getItem('eagleOperator_units') || '[]');
+                console.log('Unités récupérées depuis localStorage:', savedUnits);
                 
                 resultDiv.innerHTML = '<span class="success">Données de test créées avec succès !</span>';
                 
@@ -418,6 +423,22 @@
                 
                 // Ajouter la formation au soldat
                 const soldier = soldiers[soldierIndex];
+                
+                // S'assurer que les propriétés du soldat sont correctement définies
+                // Harmoniser les propriétés firstName/prenom et lastName/nom
+                if (!soldier.firstName && soldier.prenom) {
+                    soldier.firstName = soldier.prenom;
+                } else if (!soldier.prenom && soldier.firstName) {
+                    soldier.prenom = soldier.firstName;
+                }
+                
+                if (!soldier.lastName && soldier.nom) {
+                    soldier.lastName = soldier.nom;
+                } else if (!soldier.nom && soldier.lastName) {
+                    soldier.nom = soldier.lastName;
+                }
+                
+                // S'assurer que le soldat a des formations
                 if (!soldier.formations) {
                     soldier.formations = [];
                 }
@@ -425,11 +446,14 @@
                 // Vérifier si la formation est déjà dans les formations du soldat
                 const existingFormation = soldier.formations.find(f => f.formationId === formationId);
                 if (!existingFormation) {
+                    // Ajouter la formation avec le nom de la formation pour référence
                     soldier.formations.push({
                         formationId: formationId,
+                        nom: formation.name || formation.nom || 'Formation sans nom',  // Ajouter le nom pour référence
                         date: new Date().toISOString(),
                         statut: 'assignee'
                     });
+                    console.log(`Formation ${formationId} ajoutée au soldat ${soldier.lastName || soldier.nom}`);
                 }
                 
                 // Ajouter à l'historique du soldat

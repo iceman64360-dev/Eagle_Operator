@@ -14,6 +14,77 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSoldierId = null;
     
     /**
+     * Récupère toutes les unités depuis le localStorage
+     * @returns {Array} Liste des unités
+     */
+    function getAllUnits() {
+        try {
+            // Vérifier si la clé existe dans le localStorage
+            const unitsData = localStorage.getItem('eagleOperator_units');
+            console.log('[dossierSoldat] Données brutes des unités dans localStorage:', unitsData);
+            
+            if (!unitsData) {
+                console.warn('[dossierSoldat] Aucune donnée d\'unité trouvée dans localStorage');
+                return [];
+            }
+            
+            // Parser les données
+            const units = JSON.parse(unitsData);
+            console.log(`[dossierSoldat] ${units.length} unités récupérées depuis localStorage:`, units);
+            
+            // Vérifier que les unités ont les propriétés nécessaires
+            units.forEach(unit => {
+                if (!unit.name && unit.nom) {
+                    unit.name = unit.nom;
+                    console.log(`[dossierSoldat] Unité ${unit.id}: propriété 'name' ajoutée depuis 'nom'`);
+                } else if (!unit.nom && unit.name) {
+                    unit.nom = unit.name;
+                    console.log(`[dossierSoldat] Unité ${unit.id}: propriété 'nom' ajoutée depuis 'name'`);
+                }
+            });
+            
+            return units;
+        } catch (error) {
+            console.error('[dossierSoldat] Erreur lors de la récupération des unités:', error);
+            return [];
+        }
+    }
+
+    /**
+     * Récupère le nom d'une unité à partir de son ID
+     * @param {string} unitId - ID de l'unité
+     * @returns {string} Nom de l'unité ou valeur par défaut si non trouvée
+     */
+    function getUnitNameById(unitId) {
+        console.log('[dossierSoldat] Début de getUnitNameById avec ID:', unitId);
+        
+        // Si pas d'ID d'unité, retourner 'Sans unité'
+        if (!unitId) {
+            console.log('[dossierSoldat] ID d\'unité vide, retourne "Sans unité"');
+            return 'Sans unité';
+        }
+        
+        // Récupérer toutes les unités
+        const units = getAllUnits();
+        console.log(`[dossierSoldat] Recherche de l'unité avec ID ${unitId} parmi ${units.length} unités:`, units);
+        
+        // Chercher l'unité correspondante
+        const unit = units.find(u => u.id === unitId);
+        console.log('[dossierSoldat] Unité trouvée:', unit);
+        
+        // Si unité trouvée, retourner son nom
+        if (unit) {
+            const unitName = unit.name || unit.nom || 'Unité sans nom';
+            console.log(`[dossierSoldat] Nom de l'unité ${unitId} trouvé: ${unitName}`);
+            return unitName;
+        }
+        
+        // Si unité non trouvée, retourner une valeur par défaut
+        console.log(`[dossierSoldat] Unité avec ID ${unitId} non trouvée, retourne "Unité inconnue"`);
+        return 'Unité inconnue';
+    }
+    
+    /**
      * Initialise la page
      */
     function init() {
@@ -136,33 +207,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     /**
-     * Affiche les données d'un soldat
-     * @param {Object} soldier - Le soldat à afficher
+     * Affiche les données du soldat dans le dossier
+     * @param {Object} soldier - Données du soldat
      */
     function displaySoldierData(soldier) {
-        // Informations de base
-        document.getElementById('soldier-name').textContent = soldier.pseudo || 'Sans nom';
-        document.getElementById('soldier-id').textContent = soldier.id || '';
-        document.getElementById('soldier-grade').textContent = soldier.grade || '';
-        document.getElementById('soldier-statut').textContent = soldier.statut || '';
+        console.log('Affichage des données du soldat:', soldier);
+        console.log('Propriétés du soldat:', Object.keys(soldier));
+        
+        // Créer des données sécurisées pour éviter les erreurs
+        const safeData = {
+            id: soldier.id || 'unknown',
+            firstName: soldier.firstName || soldier.prenom || '',
+            lastName: soldier.lastName || soldier.nom || 'Sans nom',
+            rank: soldier.rank || soldier.grade || '',
+            unitId: soldier.unit || soldier.unité || soldier.unite || null,
+            status: soldier.status || soldier.statut || 'Inconnu'
+        };
+        
+        console.log('Données sécurisées du soldat:', safeData);
+        
+        // Vérifier si l'ID de l'unité est valide
+        console.log('ID de l\'unité du soldat:', safeData.unitId, 'Type:', typeof safeData.unitId);
+        
+        // Récupérer le nom de l'unité à partir de l'ID
+        const unitName = getUnitNameById(safeData.unitId);
+        console.log(`Soldat ${safeData.lastName}: unité=${safeData.unitId}, nom unité=${unitName}`);
+        
+        // Mettre à jour les champs du dossier
+        document.getElementById('soldier-id').textContent = safeData.id;
+        document.getElementById('soldier-name').textContent = `${safeData.rank ? safeData.rank + ' ' : ''}${safeData.lastName} ${safeData.firstName}`;
+        document.getElementById('soldier-status').textContent = safeData.status;
         
         // Afficher l'unité (nom au lieu de l'ID)
-        const uniteElement = document.getElementById('soldier-unite');
+        const uniteElement = document.getElementById('soldier-unit');
         if (uniteElement) {
-            if (soldier.unité) {
-                // Récupérer les données des unités pour afficher le nom
-                const unitesData = JSON.parse(localStorage.getItem('eagleOperator_units') || '[]');
-                const unite = unitesData.find(u => u.id_unite === soldier.unité);
-                uniteElement.textContent = unite ? unite.nom : soldier.unité;
-                
+            if (safeData.unitId) {
                 // Rendre le nom de l'unité cliquable
-                uniteElement.innerHTML = `<a href="unites.html?id=${soldier.unité}" class="clickable-link">${uniteElement.textContent}</a>`;
+                uniteElement.innerHTML = `<a href="unites.html?id=${safeData.unitId}" class="clickable-link">${unitName}</a>`;
             } else {
                 uniteElement.textContent = 'Non assigné';
             }
         }
         
-        document.getElementById('soldier-date').textContent = formatDate(soldier.date_incorporation) || 'Inconnue';
+        // Date d'incorporation
+        const dateElement = document.getElementById('soldier-date');
+        if (dateElement) {
+            dateElement.textContent = formatDate(soldier.date_incorporation) || 'Inconnue';
+        }
         
         // Photo du soldat (si disponible)
         const photoElement = document.getElementById('soldier-photo');
@@ -198,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
             personalInfoDiv.innerHTML = personalInfoHTML || '<p>Aucune information personnelle disponible.</p>';
         }
         
-        // Formations
+        // Afficher les formations du soldat
         displaySoldierFormations(soldier);
         
         // Missions effectuées
@@ -304,12 +395,63 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     /**
+     * Récupère toutes les unités depuis le localStorage
+     * @returns {Array} Liste des unités
+     */
+    function getAllUnits() {
+        try {
+            // Utiliser la clé harmonisée eagleOperator_units
+            const units = JSON.parse(localStorage.getItem('eagleOperator_units') || '[]');
+            return Array.isArray(units) ? units : [];
+        } catch (error) {
+            console.error('Erreur lors de la récupération des unités:', error);
+            return [];
+        }
+    }
+    
+    /**
+     * Récupère le nom d'une unité à partir de son ID
+     * @param {string} unitId - ID de l'unité
+     * @returns {string} Nom de l'unité ou 'Sans unité' si non trouvée
+     */
+    function getUnitNameById(unitId) {
+        if (!unitId) return 'Sans unité';
+        
+        try {
+            const units = getAllUnits();
+            const unit = units.find(u => u.id === unitId);
+            
+            if (unit && unit.name) {
+                console.log(`Unité trouvée dans dossierSoldat.js: ${unit.name} (ID: ${unitId})`);
+                return unit.name;
+            } else {
+                console.warn(`Unité non trouvée dans dossierSoldat.js pour l'ID: ${unitId}`);
+                return 'Unité inconnue';
+            }
+        } catch (error) {
+            console.error('Erreur lors de la récupération du nom de l\'unité:', error);
+            return 'Sans unité';
+        }
+    }
+    
+    /**
      * Affiche les formations du soldat (assignées, validées, échouées)
      * @param {Object} soldier - Le soldat dont on veut afficher les formations
      */
     function displaySoldierFormations(soldier) {
+        console.log('[dossierSoldat] Début de displaySoldierFormations pour le soldat:', soldier.id);
+        
         // Récupérer les formations depuis le localStorage
         const formations = JSON.parse(localStorage.getItem('eagleOperator_formations') || '[]');
+        console.log(`[dossierSoldat] ${formations.length} formations récupérées depuis localStorage`);
+        
+        // Vérifier si le soldat a des formations
+        if (!soldier.formations) {
+            console.log('[dossierSoldat] Le soldat n\'a pas de formations');
+            soldier.formations = [];
+        } else {
+            console.log(`[dossierSoldat] Le soldat a ${soldier.formations.length} formations:`, soldier.formations);
+        }
         
         // Récupérer les formations du soldat
         const soldierFormations = soldier.formations || [];
@@ -319,6 +461,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const completedFormations = soldierFormations.filter(f => f.statut === 'validee');
         const failedFormations = soldierFormations.filter(f => 
             f.statut === 'echouee' || f.statut === 'absent');
+        
+        console.log(`[dossierSoldat] Formations assignées: ${assignedFormations.length}`);
+        console.log(`[dossierSoldat] Formations validées: ${completedFormations.length}`);
+        console.log(`[dossierSoldat] Formations échouées/absences: ${failedFormations.length}`);
         
         // Afficher les formations assignées
         displayFormationsByStatus('assigned', assignedFormations, formations, soldier);
@@ -338,10 +484,15 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {Object} soldier - Le soldat concerné
      */
     function displayFormationsByStatus(statusType, soldierFormations, allFormations, soldier) {
+        console.log(`[dossierSoldat] Début de displayFormationsByStatus pour le statut: ${statusType}`);
+        
         const containerID = `formations-${statusType}-list`;
         const container = document.getElementById(containerID);
         
-        if (!container) return;
+        if (!container) {
+            console.warn(`[dossierSoldat] Conteneur ${containerID} non trouvé dans le DOM`);
+            return;
+        }
         
         if (soldierFormations.length === 0) {
             let message = '';
@@ -356,20 +507,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     message = 'Aucune formation échouée ou absence.';
                     break;
             }
+            console.log(`[dossierSoldat] Aucune formation pour le statut ${statusType}`);
             container.innerHTML = `<p>${message}</p>`;
             return;
         }
         
+        console.log(`[dossierSoldat] ${soldierFormations.length} formations trouvées pour le statut ${statusType}`);
         let html = '';
         
         soldierFormations.forEach(soldierFormation => {
+            console.log(`[dossierSoldat] Traitement de la formation:`, soldierFormation);
+            
             // Trouver les détails complets de la formation
-            let formationDetails = allFormations.find(f => f.id === soldierFormation.formationId) || {
-                id: soldierFormation.formationId || 'unknown',
-                nom: soldierFormation.nom || 'Formation inconnue',
-                name: soldierFormation.nom || 'Formation inconnue',
-                description: 'Détails non disponibles'
-            };
+            let formationDetails = allFormations.find(f => f.id === soldierFormation.formationId);
+            
+            if (!formationDetails) {
+                console.warn(`[dossierSoldat] Formation avec ID ${soldierFormation.formationId} non trouvée dans les formations globales`);
+                
+                // Utiliser les données de la formation du soldat si la formation globale n'est pas trouvée
+                formationDetails = {
+                    id: soldierFormation.formationId || 'unknown',
+                    nom: soldierFormation.nom || soldierFormation.name || 'Formation inconnue',
+                    name: soldierFormation.name || soldierFormation.nom || 'Formation inconnue',
+                    description: 'Détails non disponibles'
+                };
+                console.log(`[dossierSoldat] Création d'un objet formation de remplacement:`, formationDetails);
+            } else {
+                console.log(`[dossierSoldat] Formation trouvée dans les formations globales:`, formationDetails);
+            }
             
             // Harmoniser les propriétés (certaines formations utilisent 'name', d'autres 'nom')
             if (!formationDetails.nom && formationDetails.name) {
@@ -378,17 +543,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 formationDetails.name = formationDetails.nom;
             }
             
-            console.log(`Formation trouvée pour le soldat: ${formationDetails.nom || formationDetails.name || 'Inconnue'} (ID: ${formationDetails.id})`);
+            // Utiliser le nom de la formation depuis les données du soldat si disponible
+            if (soldierFormation.nom && !formationDetails.nom) {
+                formationDetails.nom = soldierFormation.nom;
+                formationDetails.name = soldierFormation.nom;
+            } else if (soldierFormation.name && !formationDetails.name) {
+                formationDetails.name = soldierFormation.name;
+                formationDetails.nom = soldierFormation.name;
+            }
+            
+            console.log(`[dossierSoldat] Formation prête pour affichage: ${formationDetails.nom || formationDetails.name || 'Inconnue'} (ID: ${formationDetails.id})`);
             
             // Créer l'élément HTML pour la formation
             html += createFormationItemHTML(formationDetails, soldierFormation, statusType, soldier.id);
         });
         
         container.innerHTML = html;
+        console.log(`[dossierSoldat] Contenu HTML généré et inséré dans le conteneur ${containerID}`);
         
         // Ajouter les écouteurs d'événements pour les boutons d'action
         if (statusType === 'assigned') {
             setupFormationActionButtons(container, soldier.id);
+            console.log(`[dossierSoldat] Écouteurs d'événements configurés pour les boutons d'action`);
         }
     }
     

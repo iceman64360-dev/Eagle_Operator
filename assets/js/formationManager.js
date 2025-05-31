@@ -43,6 +43,77 @@ function loadFormations() {
 }
 
 /**
+ * Récupère toutes les unités depuis le localStorage
+ * @returns {Array} Liste des unités
+ */
+function getAllUnits() {
+    try {
+        // Vérifier si la clé existe dans le localStorage
+        const unitsData = localStorage.getItem('eagleOperator_units');
+        console.log('Données brutes des unités dans localStorage:', unitsData);
+        
+        if (!unitsData) {
+            console.warn('Aucune donnée d\'unité trouvée dans localStorage');
+            return [];
+        }
+        
+        // Parser les données
+        const units = JSON.parse(unitsData);
+        console.log(`${units.length} unités récupérées depuis localStorage:`, units);
+        
+        // Vérifier que les unités ont les propriétés nécessaires
+        units.forEach(unit => {
+            if (!unit.name && unit.nom) {
+                unit.name = unit.nom;
+                console.log(`Unité ${unit.id}: propriété 'name' ajoutée depuis 'nom'`);
+            } else if (!unit.nom && unit.name) {
+                unit.nom = unit.name;
+                console.log(`Unité ${unit.id}: propriété 'nom' ajoutée depuis 'name'`);
+            }
+        });
+        
+        return units;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des unités:', error);
+        return [];
+    }
+}
+
+/**
+ * Récupère le nom d'une unité à partir de son ID
+ * @param {string} unitId - ID de l'unité
+ * @returns {string} Nom de l'unité ou valeur par défaut si non trouvée
+ */
+function getUnitNameById(unitId) {
+    console.log('Début de getUnitNameById avec ID:', unitId);
+    
+    // Si pas d'ID d'unité, retourner 'Sans unité'
+    if (!unitId) {
+        console.log('ID d\'unité vide, retourne "Sans unité"');
+        return 'Sans unité';
+    }
+    
+    // Récupérer toutes les unités
+    const units = getAllUnits();
+    console.log(`Recherche de l'unité avec ID ${unitId} parmi ${units.length} unités:`, units);
+    
+    // Chercher l'unité correspondante
+    const unit = units.find(u => u.id === unitId);
+    console.log('Unité trouvée:', unit);
+    
+    // Si unité trouvée, retourner son nom
+    if (unit) {
+        const unitName = unit.name || unit.nom || 'Unité sans nom';
+        console.log(`Nom de l'unité ${unitId} trouvé: ${unitName}`);
+        return unitName;
+    }
+    
+    // Si unité non trouvée, retourner une valeur par défaut
+    console.log(`Unité avec ID ${unitId} non trouvée, retourne "Unité inconnue"`);
+    return 'Unité inconnue';
+}
+
+/**
  * Charge les données des soldats depuis le localStorage
  */
 function loadSoldiers() {
@@ -568,15 +639,18 @@ function setupFormationFilters() {
     }
     
     // Remplir le sélecteur d'unités pour le filtre d'assignation
-    populateUnitFilter();
-    
-    // Configurer le filtre d'unités pour l'assignation de soldats
     const unitFilterSelect = document.getElementById('unit-filter');
     if (unitFilterSelect) {
+        // Remplir le sélecteur avec les unités
+        populateUnitFilter(unitFilterSelect);
+        
+        // Configurer le filtre d'unités pour l'assignation de soldats
         console.log('Configuration du filtre d\'unités pour l\'assignation');
         unitFilterSelect.addEventListener('change', function() {
             filterAssignableSoldiers();
         });
+    } else {
+        console.warn("L'élément select 'unit-filter' n'a pas été trouvé");
     }
     
     // Configurer le filtre de statut pour l'assignation de soldats
@@ -822,23 +896,51 @@ function displayParticipants(formation) {
     
     // Afficher chaque participant
     formation.participants.forEach(participantId => {
+        // Recherche du soldat par ID
         const soldier = soldiers.find(s => s.id === participantId);
         
         if (soldier) {
+            console.log('Données du soldat participant:', soldier);
             const participantItem = document.createElement('div');
             participantItem.className = 'participant-item';
             
-            // S'assurer que les propriétés existent pour éviter les erreurs
-            const firstName = soldier.firstName || '';
-            const lastName = soldier.lastName || 'Sans nom';
-            const rank = soldier.rank || '';
+            // Vérification complète des propriétés du soldat
+            console.log('Propriétés du soldat:', Object.keys(soldier));
             
+            // S'assurer que les propriétés existent pour éviter les erreurs (gérer les différentes variantes)
+            const firstName = soldier.firstName || soldier.prenom || '';
+            const lastName = soldier.lastName || soldier.nom || 'Sans nom';
+            const rank = soldier.rank || soldier.grade || '';
+            
+            // Récupérer le nom de l'unité à partir de l'ID en utilisant la fonction centralisée
+            // Gérer les différentes variantes de la propriété unit
+            const unitId = soldier.unit || soldier.unité || soldier.unite;
+            console.log('ID de l\'unité du soldat:', unitId, 'Type:', typeof unitId);
+            
+            // Vérifier si l'ID de l'unité est valide
+            if (unitId) {
+                console.log('ID de l\'unité valide:', unitId);
+            } else {
+                console.log('ID de l\'unité invalide ou manquant');
+            }
+            
+            // Récupérer le nom de l'unité
+            const unitName = getUnitNameById(unitId);
+            console.log(`Participant ${lastName}: unité=${unitId}, nom unité=${unitName}`);
+            
+            // Construire le nom complet avec vérification pour un affichage plus robuste
+            let fullName = '';
+            if (rank) fullName += rank + ' ';
+            fullName += lastName || 'Sans nom';
+            if (firstName) fullName += ' ' + firstName;
+            
+            // Créer l'élément HTML du participant
             participantItem.innerHTML = `
                 <div class="participant-info">
-                    <div class="participant-avatar">${firstName.charAt(0)}${lastName.charAt(0)}</div>
+                    <div class="participant-avatar">${firstName.charAt(0) || '?'}${lastName.charAt(0) || '?'}</div>
                     <div>
-                        <div class="participant-name">${rank} ${lastName} ${firstName}</div>
-                        <div class="participant-unit">${soldier.unit || 'Non assigné'}</div>
+                        <div class="participant-name">${fullName}</div>
+                        <div class="participant-unit">${unitName || 'Sans unité'}</div>
                     </div>
                 </div>
                 <div class="participant-actions">
@@ -893,11 +995,24 @@ function removeParticipant(soldierId, formationId) {
                 // Trouver et supprimer la formation des données du soldat
                 const formationIndex = soldier.formations.findIndex(f => f.formationId === formationId);
                 if (formationIndex !== -1) {
+                    // Récupérer le nom de la formation avant de la supprimer pour le log
+                    const formationName = formationsData[formationIndex].name || formationsData[formationIndex].nom || 'Formation inconnue';
+                    
+                    // Supprimer la formation
                     soldier.formations.splice(formationIndex, 1);
-                    console.log(`Formation ${formationId} retirée des données du soldat ${soldier.lastName}`);
+                    console.log(`Formation ${formationName} (ID: ${formationId}) retirée des données du soldat ${soldier.lastName || soldier.nom}`);
                     
                     // Mettre à jour le soldat dans le tableau
                     soldiers[soldierIndex] = soldier;
+                    
+                    // Mettre à jour allSoldiersData si elle est déjà chargée
+                    if (allSoldiersData.length > 0) {
+                        const globalSoldierIndex = allSoldiersData.findIndex(s => s.id === soldierId);
+                        if (globalSoldierIndex !== -1) {
+                            allSoldiersData[globalSoldierIndex] = soldier;
+                            console.log('Données globales des soldats mises à jour');
+                        }
+                    }
                     
                     // Sauvegarder les modifications des soldats
                     localStorage.setItem('eagleOperator_soldiers', JSON.stringify(soldiers));
@@ -1326,19 +1441,39 @@ function filterAssignableSoldiers() {
     // Afficher chaque soldat
     filteredSoldiers.forEach(soldier => {
         const isEligible = checkEligibility(soldier, formation);
+        const safeData = {
+            id: soldier.id,
+            rank: soldier.rank || '',
+            lastName: soldier.lastName || 'Sans nom',
+            firstName: soldier.firstName || '',
+            unit: soldier.unit || 'Sans unité',
+        };
+        
+        // Créer l'élément HTML
         const soldierItem = document.createElement('div');
-        soldierItem.className = 'soldier-item';
+        soldierItem.className = 'assignable-soldier';
+        soldierItem.dataset.soldierId = safeData.id;
+        
+        // Vérifier que les propriétés nécessaires sont définies
+        const firstInitial = safeData.firstName ? safeData.firstName.charAt(0) : '?';
+        const lastInitial = safeData.lastName ? safeData.lastName.charAt(0) : '?';
+        
+        // Construire le nom complet avec vérification
+        let fullName = '';
+        if (safeData.rank) fullName += safeData.rank + ' ';
+        fullName += safeData.lastName || 'Sans nom';
+        if (safeData.firstName) fullName += ' ' + safeData.firstName;
         
         soldierItem.innerHTML = `
             <div class="soldier-info">
-                <input type="checkbox" class="soldier-checkbox" data-soldier-id="${soldier.id}" ${!isEligible ? 'disabled' : ''}>
+                <div class="soldier-avatar">${firstInitial}${lastInitial}</div>
                 <div>
-                    <div class="soldier-name">${soldier.rank} ${soldier.lastName} ${soldier.firstName}</div>
-                    <div class="soldier-details">${soldier.unit || 'Non assigné'} - ${soldier.status}</div>
+                    <div class="soldier-name">${fullName}</div>
+                    <div class="soldier-unit">${safeData.unit}</div>
                 </div>
             </div>
-            <div class="soldier-eligibility ${isEligible ? 'eligible' : 'ineligible'}">
-                ${isEligible ? 'Éligible' : 'Non éligible'}
+            <div class="soldier-actions">
+                <input type="checkbox" class="soldier-checkbox" data-soldier-id="${safeData.id}">
             </div>
         `;
         
@@ -1485,6 +1620,38 @@ function assignSelectedSoldiersToFormation() {
             if (soldierIndex !== -1) {
                 const soldier = soldiers[soldierIndex];
                 
+                // Harmoniser les propriétés du soldat pour éviter les problèmes d'affichage
+                // Harmoniser firstName/prenom
+                if (!soldier.firstName && soldier.prenom) {
+                    soldier.firstName = soldier.prenom;
+                } else if (!soldier.prenom && soldier.firstName) {
+                    soldier.prenom = soldier.firstName;
+                }
+                
+                // Harmoniser lastName/nom
+                if (!soldier.lastName && soldier.nom) {
+                    soldier.lastName = soldier.nom;
+                } else if (!soldier.nom && soldier.lastName) {
+                    soldier.nom = soldier.lastName;
+                }
+                
+                // Harmoniser rank/grade
+                if (!soldier.rank && soldier.grade) {
+                    soldier.rank = soldier.grade;
+                } else if (!soldier.grade && soldier.rank) {
+                    soldier.grade = soldier.rank;
+                }
+                
+                // Harmoniser unit/unité/unite
+                if (soldier.unité && !soldier.unit) {
+                    soldier.unit = soldier.unité;
+                } else if (soldier.unite && !soldier.unit) {
+                    soldier.unit = soldier.unite;
+                } else if (soldier.unit) {
+                    if (!soldier.unité) soldier.unité = soldier.unit;
+                    if (!soldier.unite) soldier.unite = soldier.unit;
+                }
+                
                 // Initialiser le tableau des formations si nécessaire
                 if (!soldier.formations) {
                     soldier.formations = [];
@@ -1493,18 +1660,26 @@ function assignSelectedSoldiersToFormation() {
                 // Vérifier si la formation est déjà assignée au soldat
                 const existingFormation = soldier.formations.find(f => f.formationId === formation.id);
                 if (!existingFormation) {
+                    // S'assurer que la formation a un nom harmonisé
+                    if (!formation.nom && formation.name) {
+                        formation.nom = formation.name;
+                    } else if (!formation.name && formation.nom) {
+                        formation.name = formation.nom;
+                    }
+                    
                     // Ajouter la formation aux formations du soldat
                     // Structure harmonisée avec dossierSoldat.js
                     soldier.formations.push({
                         formationId: formation.id,
-                        nom: formation.name, // Ajout du nom pour dossierSoldat.js
+                        nom: formation.name || formation.nom || 'Formation sans nom', // Ajout du nom pour dossierSoldat.js
+                        name: formation.name || formation.nom || 'Formation sans nom', // Ajout du name pour compatibilité
                         date: new Date().toISOString(),
                         statut: 'assignee'
                     });
                     
                     // Mettre à jour le soldat dans le tableau
                     soldiers[soldierIndex] = soldier;
-                    console.log(`Formation ${formation.name} ajoutée aux données du soldat ${soldier.lastName}`);
+                    console.log(`Formation ${formation.name || formation.nom} ajoutée aux données du soldat ${soldier.lastName || soldier.nom}`);
                 }
             }
         } else {
@@ -2113,22 +2288,33 @@ function filterAssignableSoldiers() {
  * @param {Object} soldier - Données du soldat
  * @returns {HTMLElement} Élément HTML du soldat
  */
-function createSoldierItemForAssignment(soldier) {
-    // Vérifier que le soldat a des données valides
-    if (!soldier || !soldier.id) {
-        console.error('Données de soldat invalides:', soldier);
-        return document.createElement('div'); // Retourner un div vide
+function createSoldierItemForAssignment(soldier, selectedFormationId) {
+    console.log('Données du soldat pour assignation:', soldier);
+    console.log('Propriétés du soldat:', Object.keys(soldier));
+    
+    // Créer des données sécurisées pour éviter les erreurs
+    const safeData = {
+        id: soldier.id || 'unknown',
+        firstName: soldier.firstName || soldier.prenom || '',
+        lastName: soldier.lastName || soldier.nom || 'Sans nom',
+        rank: soldier.rank || soldier.grade || '',
+        unitId: soldier.unit || soldier.unité || soldier.unite || null,
+        status: soldier.status || soldier.statut || 'Inconnu'
+    };
+    
+    console.log('Données sécurisées du soldat:', safeData);
+    
+    // Vérifier si l'ID de l'unité est valide
+    console.log('ID de l\'unité du soldat:', safeData.unitId, 'Type:', typeof safeData.unitId);
+    if (safeData.unitId) {
+        console.log('ID de l\'unité valide:', safeData.unitId);
+    } else {
+        console.log('ID de l\'unité invalide ou manquant');
     }
     
-    // S'assurer que toutes les propriétés nécessaires existent
-    const safeData = {
-        id: soldier.id,
-        rank: soldier.rank || '',
-        lastName: soldier.lastName || 'Sans nom',
-        firstName: soldier.firstName || '',
-        unit: soldier.unit || 'Sans unité',
-        status: soldier.status || 'Inconnu'
-    };
+    // Récupérer le nom de l'unité à partir de l'ID en utilisant la fonction centralisée
+    safeData.unit = getUnitNameById(safeData.unitId);
+    console.log(`Soldat ${safeData.lastName}: unité=${safeData.unitId}, nom unité=${safeData.unit}`);
     
     const formation = formationsData.find(f => f.id === selectedFormationId);
     const isParticipant = formation && formation.participants && formation.participants.includes(safeData.id);
@@ -2258,6 +2444,31 @@ function getAllUnits() {
     } catch (error) {
         console.error('Erreur lors de la récupération des unités:', error);
         return [];
+    }
+}
+
+/**
+ * Récupère le nom d'une unité à partir de son ID
+ * @param {string} unitId - ID de l'unité
+ * @returns {string} Nom de l'unité ou 'Sans unité' si non trouvée
+ */
+function getUnitNameById(unitId) {
+    if (!unitId) return 'Sans unité';
+    
+    try {
+        const units = getAllUnits();
+        const unit = units.find(u => u.id === unitId);
+        
+        if (unit && unit.name) {
+            console.log(`Unité trouvée: ${unit.name} (ID: ${unitId})`);
+            return unit.name;
+        } else {
+            console.warn(`Unité non trouvée pour l'ID: ${unitId}`);
+            return 'Unité inconnue';
+        }
+    } catch (error) {
+        console.error('Erreur lors de la récupération du nom de l\'unité:', error);
+        return 'Sans unité';
     }
 }
 
