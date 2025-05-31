@@ -190,7 +190,7 @@ function addAssignModalEventListeners() {
 /**
  * Filtre et affiche les soldats assignables à l'unité
  */
-function filterAssignableSoldiers() {
+window.filterAssignableSoldiers = function() {
     try {
         const soldiersList = document.getElementById('assignable-soldiers-list');
         const searchInput = document.getElementById('soldier-search');
@@ -473,4 +473,4 @@ function assignSelectedOperators() {
 window.openAssignOperatorsModal = openAssignOperatorsModal;
 window.closeAssignOperatorsModal = closeAssignOperatorsModal;
 window.assignSelectedOperators = assignSelectedOperators;
-window.filterAssignableSoldiers = filterAssignableSoldiers;
+

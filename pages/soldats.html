@@ -8,89 +8,68 @@
     <link rel="stylesheet" href="../assets/css/no-photos.css">
     <link rel="stylesheet" href="../assets/css/progression.css">
     <link rel="stylesheet" href="../assets/css/dossier-soldat.css">
+    <link rel="stylesheet" href="../assets/css/missions.css"> <!-- Harmonisation visuelle -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
-        <div class="logo-container">
-            <img src="../assets/img/logo.png" alt="Eagle Company Logo" id="logo">
-            <h1>Eagle Company - Gestion des Soldats</h1>
-        </div>
-        <nav>
-            <ul>
-                <li><a href="../index.html">Tableau de Bord</a></li>
-                <li><a href="unites.html">Unités</a></li>
-                <li><a href="soldats.html" class="active">Soldats</a></li>
-                <li><a href="missions.html">Missions</a></li>
-                <li><a href="formations.html">Formations</a></li>
-            </ul>
-        </nav>
-    </header>
+    <div class="logo-container">
+        <img src="../assets/img/logo.png" alt="Eagle Company Logo" id="logo">
+        <h1>Eagle Company</h1>
+    </div>
+    <nav>
+        <ul>
+            <li><a href="../index.html">Tableau de Bord</a></li>
+            <li><a href="unites.html">Unités</a></li>
+            <li><a href="soldats.html" class="active">Soldats</a></li>
+            <li><a href="missions.html">Missions</a></li>
+            <li><a href="formations.html">Formations</a></li>
+        </ul>
+    </nav>
+</header>
 
-    <main class="soldats-container">
-        <div class="soldats-header">
-    <h1>Gestion des Soldats</h1>
-    <div class="soldats-actions">
-        <button id="openCreateSoldierModal" class="military-btn">
-            <span class="icon" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="3" width="3" height="13" rx="1" fill="#181a1b"/><rect x="3" y="8" width="13" height="3" rx="1" fill="#181a1b"/></svg></span>
-            Créer un soldat
-        </button>
-        <input type="text" id="searchSoldier" class="military-input" placeholder="Rechercher un soldat...">
-        <select id="filterGrade" class="military-select" title="Filtrer par Grade">
-            <option value="">Filtrer par Grade</option>
-        </select>
-        <select id="filterStatus" class="military-select" title="Filtrer par Statut">
-            <option value="">Filtrer par Statut</option>
-        </select>
-        <button id="resetFilters" class="military-btn">Réinitialiser</button>
-        <button id="exportData" class="military-btn">Exporter</button>
-        <button id="importData" class="military-btn">Importer</button>
-        <input type="file" id="importFile" accept=".json" title="Importer un fichier JSON de données" style="display:none;">
-    </div>
-</div>
-    <div class="card-header">
-        <h2 class="text-center">Gestion des Soldats</h2>
-    </div>
-    <div class="card-body">
-        <div class="tabs mb-2">
-            <button class="tab-btn active" data-tab="all">Tous</button>
-            <button class="tab-btn" data-tab="actif">Actifs</button>
-            <button class="tab-btn" data-tab="recrue">Recrues</button>
-            <button class="tab-btn" data-tab="inactif">Inactifs</button>
+    <main class="missions-container">
+        <div class="missions-header">
+            <h1>Catalogue des Soldats</h1>
+            <div class="missions-actions">
+                <button id="openCreateSoldierModal" class="military-btn">
+                    <span class="icon" aria-hidden="true"><svg width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="8" y="3" width="3" height="13" rx="1" fill="#181a1b"/><rect x="3" y="8" width="13" height="3" rx="1" fill="#181a1b"/></svg></span>
+                    Créer un soldat
+                </button>
+                <div class="search-container">
+                    <input type="text" id="searchSoldier" class="military-input" placeholder="Rechercher un soldat...">
+                </div>
+                <div class="filter-container">
+                    <select id="filterGrade" class="military-select" title="Filtrer par Grade">
+                        <option value="">Filtrer par Grade</option>
+                    </select>
+                </div>
+                <div class="filter-container">
+                    <select id="filterStatus" class="military-select" title="Filtrer par Statut">
+                        <option value="">Filtrer par Statut</option>
+                    </select>
+                </div>
+                <button id="resetFilters" class="military-btn">Réinitialiser</button>
+                <button id="exportData" class="military-btn">Exporter</button>
+                <button id="importData" class="military-btn">Importer</button>
+                <input type="file" id="importFile" accept=".json" title="Importer un fichier JSON de données" style="display:none;">
+            </div>
         </div>
-        <div class="flex-center mb-2">
-            <input type="text" id="searchSoldier" class="input-search" placeholder="Rechercher par nom ou unité...">
-            <select id="filterGrade" class="input-select" title="Filtrer par Grade">
-                <option value="">Filtrer par Grade</option>
-            </select>
-            <select id="filterStatus" class="input-select" title="Filtrer par Statut">
-                <option value="">Filtrer par Statut</option>
-            </select>
-            <button id="resetFilters" class="btn">Réinitialiser</button>
-        </div>
-        <div class="flex-center mb-2">
-            <button id="exportData" class="action-btn">Exporter les données</button>
-            <button id="importData" class="action-btn">Importer des données</button>
-            <input type="file" id="importFile" accept=".json" title="Importer un fichier JSON de données" style="display:none;">
-        </div>
-    </div>
-</section>
-
-        <div class="soldats-grid" id="soldierList">
-    <!-- Les cartes soldats seront générées dynamiquement ici -->
-                <!-- Les cartes des soldats seront injectées ici par JavaScript -->
-                <p id="loadingMessage">Chargement des données des soldats...</p>
+        <div class="missions-grid" id="soldierList">
+            <!-- Les cartes soldats seront générées dynamiquement ici -->
+            <div class="soldier-card soldier-placeholder">
+                <h3>Chargement des soldats...</h3>
             </div>
         </div>
 
-        <!-- MODALE DOSSIER SOLDAT -->
-        <div id="soldierFileModal" class="modal-bg hidden-modal">
-            <div class="modal military-modal soldier-file-modal">
-                <div class="modal-header-container">
+        <!-- MODALE DOSSIER SOLDAT (harmonisée) -->
+        <div id="soldierFileModal" class="modal">
+            <div class="modal-content soldier-file-modal">
+                <div class="modal-header">
                     <h2>Dossier du Soldat <span id="soldierFileTitle"></span></h2>
-                    <button class="close-dossier-btn" id="btn-close-dossier">Fermer le dossier</button>
+                    <button class="close-modal" id="btn-close-dossier" title="Fermer">&times;</button>
                 </div>
-                <div class="soldier-file-content">
+                <div class="modal-body">
                     <div class="soldier-file-tabs">
                         <button class="tab-btn active" data-tab="identity">Identité</button>
                         <button class="tab-btn" data-tab="service">Service</button>
@@ -100,7 +79,6 @@
                         <button class="tab-btn" data-tab="history">Historique</button>
                         <button class="tab-btn hidden-tab" id="progression-tab-btn" data-tab="progression">Progression</button>
                     </div>
-                    
                     <div class="soldier-file-tab-content">
                         <!-- Onglet Identité -->
                         <div class="tab-pane active" id="identity-tab">
@@ -444,12 +422,12 @@
         </div>
     </main>
 
-    <footer>
-        <p>&copy; 2024-2025 Eagle Company - Tous droits réservés.</p>
-    </footer>
+    <footer class="site-footer">
+    <p>&copy; 2025 Eagle Company - Tous droits réservés.</p>
+</footer>
 
     <script src="../assets/js/soldierManager.js"></script>
-    <script src="../assets/js/soldierPhotoManager.js"></script>
+
     <script src="../assets/js/dataManager.js"></script>
     <script src="../assets/js/progressionManager.js"></script>
     <script src="../assets/js/sanctionManager.js"></script>

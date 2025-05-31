@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eagle Company - Missions</title>
-    <link rel="stylesheet" href="../assets/css/style.css"> <!-- Styles globaux -->
+    <link rel="stylesheet" href="../assets/css/global.css"> <!-- Styles globaux -->
     <link rel="stylesheet" href="../assets/css/missions.css"> <!-- Styles spécifiques aux missions -->
     <link rel="stylesheet" href="../assets/css/modal-buttons.css"> <!-- Styles pour les boutons de fermeture -->
     <link rel="stylesheet" href="../assets/css/notifications.css"> <!-- Styles pour les notifications -->
@@ -12,20 +12,20 @@
 </head>
 <body>
     <header>
-        <div class="logo-container">
-            <img src="../assets/img/logo.png" alt="Eagle Company Logo" id="logo">
-            <h1>Eagle Company - Gestion des Missions</h1>
-        </div>
-        <nav>
-            <ul>
-                <li><a href="../index.html">Tableau de Bord</a></li>
-                <li><a href="unites.html">Unités</a></li>
-                <li><a href="soldats.html">Soldats</a></li>
-                <li><a href="missions.html" class="active">Missions</a></li>
-                <li><a href="formations.html">Formations</a></li>
-            </ul>
-        </nav>
-    </header>
+    <div class="logo-container">
+        <img src="../assets/img/logo.png" alt="Eagle Company Logo" id="logo">
+        <h1>Eagle Company</h1>
+    </div>
+    <nav>
+        <ul>
+            <li><a href="../index.html">Tableau de Bord</a></li>
+            <li><a href="unites.html">Unités</a></li>
+            <li><a href="soldats.html">Soldats</a></li>
+            <li><a href="missions.html" class="active">Missions</a></li>
+            <li><a href="formations.html">Formations</a></li>
+        </ul>
+    </nav>
+</header>
 
     <main class="missions-container">
         <div class="missions-header">
@@ -241,9 +241,9 @@
         </div>
     </main>
 
-    <footer>
-        <p>&copy; 2025 Eagle Company - Tous droits réservés.</p>
-    </footer>
+    <footer class="site-footer">
+    <p>&copy; 2025 Eagle Company - Tous droits réservés.</p>
+</footer>
 
     <!-- Scripts -->
     <script src="../assets/js/missionManager.js"></script>

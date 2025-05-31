@@ -321,22 +321,10 @@ function displaySoldiers(soldiersToDisplay) {
         const deleteButton = card.querySelector('.delete-btn');
         if (deleteButton) {
             deleteButton.addEventListener('click', (event) => {
-                event.stopPropagation();
-                supprimerSoldat(soldier.id);
-            });
-        }
-        soldierListDiv.appendChild(card);
-        
-        soldierListDiv.appendChild(card);
-        
-        const deleteButton = card.querySelector('.delete-btn');
-        if (deleteButton) {
-            deleteButton.addEventListener('click', (event) => {
                 event.stopPropagation(); 
                 supprimerSoldat(soldier.id);
             });
         }
-        
         soldierListDiv.appendChild(card);
     });
 }

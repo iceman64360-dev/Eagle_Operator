@@ -4,51 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eagle Company - Structure des Unités</title>
-    <link rel="stylesheet" href="../assets/css/style.css"> <!-- Styles globaux -->
+    <link rel="stylesheet" href="../assets/css/global.css"> <!-- Styles globaux -->
     <link rel="stylesheet" href="../assets/css/unites.css"> <!-- Styles spécifiques aux unités -->
     <link rel="stylesheet" href="../assets/css/no-photos.css"> <!-- Masquer les éléments liés aux photos -->
 </head>
 <body>
     <header>
-        <div class="logo-container">
-            <img src="../assets/img/logo.png" alt="Eagle Company Logo" id="logo">
-            <h1>Eagle Company - Gestion des Unités</h1>
-        </div>
-        <nav>
-            <ul>
-                <li><a href="../index.html">Tableau de Bord</a></li>
-                <li><a href="unites.html" class="active">Unités</a></li>
-                <li><a href="soldats.html">Soldats</a></li>
-                <li><a href="missions.html">Missions</a></li>
-                <li><a href="formations.html">Formations</a></li>
-            </ul>
-        </nav>
-    </header>
+    <div class="logo-container">
+        <img src="../assets/img/logo.png" alt="Eagle Company Logo" id="logo">
+        <h1>Eagle Company</h1>
+    </div>
+    <nav>
+        <ul>
+            <li><a href="../index.html">Tableau de Bord</a></li>
+            <li><a href="unites.html" class="active">Unités</a></li>
+            <li><a href="soldats.html">Soldats</a></li>
+            <li><a href="missions.html">Missions</a></li>
+            <li><a href="formations.html">Formations</a></li>
+        </ul>
+    </nav>
+</header>
 
-    <main>
-        <div id="unitTree">
-            <!-- L'arborescence des unités sera injectée ici par JavaScript -->
+    <main class="missions-container">
+        <div class="missions-header">
+            <h1>Catalogue des Unités</h1>
+            <div class="missions-actions">
+                <button class="military-btn" id="addSoldierBtn"><span class="action-icon">&#x2795;</span> Ajouter Soldat</button>
+                <button class="military-btn" id="editUnitBtn"><span class="action-icon">&#x270E;</span> Modifier Unité</button>
+                <button class="military-btn" id="transferBtn"><span class="action-icon">&#x21C4;</span> Transférer</button>
+            </div>
         </div>
         <nav class="unit-breadcrumb-bar">
-            <div id="unitBreadcrumb" class="unit-breadcrumb">
-                <!-- Fil d'Ariane dynamique injecté par JS -->
-            </div>
-            <div class="unit-quick-actions">
-                <button class="quick-btn" id="addSoldierBtn"><span class="action-icon">&#x2795;</span> Ajouter Soldat</button>
-                <button class="quick-btn" id="editUnitBtn"><span class="action-icon">&#x270E;</span> Modifier Unité</button>
-                <button class="quick-btn" id="transferBtn"><span class="action-icon">&#x21C4;</span> Transférer</button>
-            </div>
-        </nav>
+    <div id="unitBreadcrumb" class="unit-breadcrumb">
+        <!-- Fil d'Ariane dynamique injecté par JS -->
+    </div>
+</nav>
+<div class="missions-grid" id="unitTree">
+            <!-- L'arborescence des unités sera injectée ici par JavaScript -->
+        </div>
         <section class="unit-detail-fullwidth" id="unitDetailPane">
             <h2>Détails de l'Unité</h2>
             <p>Sélectionnez une unité dans l'arborescence pour voir ses détails ici.</p>
             <!-- Les détails de l'unité sélectionnée seront injectés ici -->
         </section>
-    </main>
+            <!-- L'arborescence des unités sera injectée ici par JavaScript -->
+        </div>
+        
+        <section class="unit-detail-fullwidth" id="unitDetailPane">
+    <h2>Détails de l'Unité</h2>
+    <p>Sélectionnez une unité dans l'arborescence pour voir ses détails ici.</p>
+    <!-- Les détails de l'unité sélectionnée seront injectés ici -->
+</section>
+</main>
 
-    <footer>
-        <p>&copy; 2025 Eagle Company - Tous droits réservés.</p>
-    </footer>
+    <footer class="site-footer">
+    <p>&copy; 2025 Eagle Company - Tous droits réservés.</p>
+</footer>
 
     <!-- Modale d'affectation d'opérateurs à une unité -->
     <div id="assignSoldiersModal" class="modal">

@@ -1,13 +1,99 @@
 /* =========================
    GLOBAL DESIGN (inspiré de formations.css)
    ========================= */
+
+/* Header global */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card-bg);
+  padding: 18px 32px 18px 32px;
+  border-bottom: 3px solid var(--accent);
+  box-shadow: var(--shadow);
+  min-height: 80px;
+}
+
+/* Logo + titre */
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+#logo {
+  max-width: 90px;
+  max-height: 90px;
+  height: auto;
+  width: auto;
+  display: block;
+}
+
+/* Titre principal */
+.logo-container h1 {
+  font-family: 'Orbitron', sans-serif;
+  color: var(--accent);
+  font-size: 2.2rem;
+  margin: 0;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 10px #ffb34766;
+}
+
+/* Menu de navigation */
+nav ul {
+  display: flex;
+  gap: 18px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+nav ul li a {
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  padding: 7px 18px;
+  border-radius: 8px;
+  transition: background 0.2s, color 0.2s;
+}
+nav ul li a.active,
+nav ul li a:hover {
+  background: var(--accent);
+  color: var(--main-bg);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 10px;
+  }
+  nav ul {
+    flex-direction: column;
+    gap: 7px;
+    width: 100%;
+  }
+  .logo-container {
+    margin-bottom: 10px;
+  }
+}
+
+/* Main centré et espacé */
+main {
+  margin-top: 36px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
 :root {
   --main-bg: #23272f;
   --card-bg: #2a2f3b;
-  --accent: #4ecca3;
+  --accent: #ffbf00;
   --danger: #e84545;
   --warning: #ffb347;
-  --info: #36a2eb;
+  --info: #ffbf00;
   --success: #43d18d;
   --text: #f5f6fa;
   --muted: #c2c8d0;
@@ -16,7 +102,7 @@
   --badge-assignee: #ffb347;
   --badge-success: #43d18d;
   --badge-failed: #e84545;
-  --badge-default: #36a2eb;
+  --badge-default: #ffbf00;
 }
 
 body {
@@ -100,6 +186,7 @@ h1, h2, h3, h4 {
   display: flex;
   border-bottom: 2px solid var(--accent);
   margin-bottom: 1em;
+  background: #2a2f3b;
 }
 .tab-btn {
   background: none;
@@ -115,6 +202,7 @@ h1, h2, h3, h4 {
 .tab-btn.active {
   color: var(--accent);
   border-bottom: 3px solid var(--accent);
+  background: #ffb34722;
 }
 
 .table {
@@ -133,27 +221,210 @@ h1, h2, h3, h4 {
   background: var(--accent);
   color: var(--main-bg);
   font-weight: 700;
+  text-shadow: 0 1px 6px #ffb34744;
 }
 
 .modal {
   display: none;
   position: fixed;
-  z-index: 1000;
+  z-index: 2000;
   left: 0; top: 0; width: 100vw; height: 100vh;
-  background: rgba(40,42,54,0.85);
+  background: rgba(30,32,40,0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   align-items: center;
   justify-content: center;
+  animation: modalFadeIn 0.35s;
 }
 .modal.active {
   display: flex;
+  animation: modalFadeIn 0.35s;
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .modal-content {
-  background: var(--card-bg);
-  border-radius: var(--border-radius);
-  padding: 2em;
-  box-shadow: var(--shadow);
-  min-width: 320px;
-  max-width: 95vw;
+  background: var(--main-bg);
+  border-radius: 18px;
+  border: 2.5px solid var(--accent);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  padding: 2.2em 2.5em 2em 2.5em;
+  min-width: 340px;
+  max-width: 96vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  animation: modalContentFade 0.4s;
+  color: var(--text);
+}
+
+.modal-body, .soldier-file-details, .soldier-file-tabs, .soldier-file-tab-content {
+  color: var(--text);
+}
+
+.soldier-file-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.soldier-file-tabs .tab-btn {
+  background: none;
+  border: none;
+  color: var(--text);
+  opacity: 0.7;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.08em;
+  font-weight: 600;
+  padding: 0.6em 1.4em;
+  border-bottom: 3px solid transparent;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  transition: color 0.2s, border-bottom 0.2s, background 0.2s, opacity 0.2s;
+}
+.soldier-file-tabs .tab-btn.active {
+  color: var(--accent);
+  opacity: 1;
+  background: #ffb34722;
+  border-bottom: 3px solid var(--accent);
+}
+.soldier-file-tabs .tab-btn:focus {
+  outline: 2px solid var(--accent);
+  opacity: 1;
+}
+
+.soldier-file-details .detail-row strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+.soldier-file-details .detail-row {
+  color: var(--text);
+  margin-bottom: 0.6em;
+}
+
+.placeholder-text {
+  color: var(--muted);
+  opacity: 1;
+}
+
+@keyframes modalContentFade {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-radius: 16px 16px 0 0;
+  background: transparent;
+}
+.modal-header h2, .modal-header h3 {
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+  color: var(--accent);
+  font-size: 1.35em;
+  flex: 1;
+  text-align: center;
+  letter-spacing: 1px;
+}
+.close-modal, .close {
+  color: var(--accent);
+  font-size: 2.1em;
+  font-weight: bold;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 20px;
+  transition: color 0.2s, transform 0.2s;
+  outline: none;
+}
+.close-modal:hover, .close:hover {
+  color: #fff;
+  transform: scale(1.15);
+}
+
+.modal-body {
+  padding: 10px 0 18px 0;
+  overflow-y: auto;
+  flex: 1;
+  font-size: 1.05em;
+  color: var(--text);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 18px;
+  padding-top: 12px;
+  border-top: 1.5px solid #333;
+  margin-top: 8px;
+}
+.modal-footer .btn, .modal-footer .military-btn {
+  min-width: 120px;
+  font-size: 1em;
+  font-family: 'Orbitron', sans-serif;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+  outline: none;
+}
+.modal-footer .btn:focus, .modal-footer .military-btn:focus {
+  box-shadow: 0 0 0 3px #ffbf0055;
+}
+.modal-footer .btn-primary, .modal-footer .military-btn:not(.btn-secondary) {
+  background: var(--accent);
+  color: #23272f;
+  border: 1.5px solid var(--accent);
+}
+.modal-footer .btn-primary:hover, .modal-footer .military-btn:not(.btn-secondary):hover {
+  background: #ffd700;
+  color: #23272f;
+}
+.modal-footer .btn-secondary, .modal-footer .military-btn.btn-secondary {
+  background: #23272f;
+  color: #fff;
+  border: 1.5px solid #444;
+}
+.modal-footer .btn-secondary:hover, .modal-footer .military-btn.btn-secondary:hover {
+  background: #444;
+}
+
+@media (max-width: 600px) {
+  .modal-content {
+    padding: 1.2em 0.5em 1em 0.5em;
+    min-width: 0;
+    max-width: 98vw;
+  }
+  .modal-header {
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+}
+
+.site-footer {
+  text-align: center;
+  color: var(--muted, #b0b0b0);
+  background: var(--card-bg, #181a1b);
+  font-family: 'Roboto Condensed', Arial, sans-serif;
+  padding: 28px 10px 20px 10px;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  border-top: 1.5px solid var(--border, #232830);
+  margin-top: 40px;
+}
+@media (max-width: 600px) {
+  .site-footer {
+    font-size: 0.97rem;
+    padding: 20px 4vw 16px 4vw;
+  }
 }
 
 /* Utilitaires */
@@ -166,7 +437,7 @@ h1, h2, h3, h4 {
 .statut-color-actif { color: #43d18d; font-weight: bold; }
 .statut-color-inactif { color: #e84545; font-weight: bold; }
 .statut-color-permission { color: #ffb347; font-weight: bold; }
-.statut-color-recrue { color: #36a2eb; font-weight: bold; }
+.statut-color-recrue { color: #ffbf00; font-weight: bold; }
 .statut-color-default { color: var(--muted); font-weight: bold; }
 
 /* === SOLDATS HARMONISATION === */
@@ -189,6 +460,7 @@ h1, h2, h3, h4 {
   margin: 0 0 16px 0;
   font-family: 'Orbitron', sans-serif;
   color: var(--accent);
+  text-shadow: 0 2px 10px #ffb34766;
 }
 .soldats-actions {
   display: flex;
@@ -233,7 +505,7 @@ h1, h2, h3, h4 {
   color: #fff;
 }
 .soldat-card-badge.actif { background: #43d18d; }
-.soldat-card-badge.recrue { background: #36a2eb; }
+.soldat-card-badge.recrue { background: #ffbf00; color: #23272f; }
 .soldat-card-badge.inactif { background: #e84545; }
 .soldat-card-badge.permission { background: #ffb347; color: #23272f; }
 .soldat-card-badge.default { background: var(--muted); }
@@ -256,6 +528,7 @@ h1, h2, h3, h4 {
   font-weight: 600;
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
   box-shadow: var(--shadow);
+  text-shadow: 0 1px 6px #ffb34744;
 }
 .military-btn:hover {
   background: var(--danger);
