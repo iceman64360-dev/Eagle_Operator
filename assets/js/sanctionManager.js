@@ -26,6 +26,10 @@ function setupSanctionModal() {
     // Ouvrir la modale
     if (btnAddSanction) {
         btnAddSanction.addEventListener('click', () => {
+            // Assurer que la modale est centrée
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
             modal.classList.remove('hidden-modal');
         });
     }
@@ -373,7 +377,13 @@ function initSanctionManager(soldierId) {
         // Ajouter le nouvel écouteur d'événement
         newBtn.addEventListener('click', () => {
             const modal = document.getElementById('sanction-modal');
-            if (modal) modal.classList.remove('hidden-modal');
+            if (modal) {
+                // Assurer que la modale est centrée
+                modal.style.display = 'flex';
+                modal.style.justifyContent = 'center';
+                modal.style.alignItems = 'center';
+                modal.classList.remove('hidden-modal');
+            }
         });
     }
 }

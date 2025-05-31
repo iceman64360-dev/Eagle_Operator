@@ -398,10 +398,20 @@
 }
 
 /* Styles pour la modale d'ajout de sanction */
+#sanction-modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 #sanction-modal .military-modal {
     width: 90%;
     max-width: 500px;
     margin: 0 auto;
+    position: static !important;
+    transform: none !important;
+    left: auto !important;
+    right: auto !important;
 }
 
 #sanction-form {
