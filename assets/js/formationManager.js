@@ -872,6 +872,37 @@ function displayAssignableSoldiers(formation) {
     allSoldiersData = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
     console.log('Nombre de soldats chargés:', allSoldiersData.length);
     
+    // Vérifier et compléter les données des soldats pour éviter les erreurs
+    allSoldiersData = allSoldiersData.map(soldier => {
+        // S'assurer que chaque soldat a un ID valide
+        if (!soldier.id) {
+            console.warn('Soldat sans ID détecté, génération d\'un ID temporaire');
+            soldier.id = 'temp_' + Math.random().toString(36).substring(2, 15);
+        }
+        
+        // S'assurer que chaque soldat a un nom et prénom valides
+        if (!soldier.lastName) {
+            console.warn(`Soldat ${soldier.id} sans nom détecté, ajout d'un nom par défaut`);
+            soldier.lastName = 'Sans nom';
+        }
+        
+        if (!soldier.firstName) {
+            console.warn(`Soldat ${soldier.id} sans prénom détecté, ajout d'un prénom par défaut`);
+            soldier.firstName = '';
+        }
+        
+        return soldier;
+    });
+    
+    // Filtrer pour ne garder que les soldats avec des données valides
+    allSoldiersData = allSoldiersData.filter(soldier => {
+        if (!soldier || typeof soldier !== 'object') {
+            console.error('Données de soldat invalides détectées et filtrées');
+            return false;
+        }
+        return true;
+    });
+    
     // Afficher les soldats dans l'onglet Soldats
     const soldiersList = document.getElementById('assignable-soldiers-list');
     if (soldiersList) {
@@ -1480,8 +1511,14 @@ function filterAssignableSoldiers() {
         return;
     }
     
-    // Trier les soldats par nom
-    filteredSoldiers.sort((a, b) => a.lastName.localeCompare(b.lastName));
+    // Trier les soldats par nom (avec vérification pour éviter les erreurs)
+    filteredSoldiers.sort((a, b) => {
+        // Vérifier que les objets et leurs propriétés existent
+        if (!a || !b) return 0;
+        if (!a.lastName) return -1;
+        if (!b.lastName) return 1;
+        return a.lastName.localeCompare(b.lastName);
+    });
     
     // Créer les éléments pour chaque soldat
     filteredSoldiers.forEach(soldier => {
