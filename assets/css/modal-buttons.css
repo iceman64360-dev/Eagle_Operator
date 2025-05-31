@@ -1,0 +1,29 @@
+/* Styles pour les boutons de fermeture des modales */
+
+.close-dossier-btn, 
+.close-formation-btn {
+    background-color: #2c3e50;
+    color: #ffbf00;
+    border: 2px solid #ffbf00;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    font-family: 'Orbitron', 'Arial', sans-serif;
+}
+
+.close-dossier-btn:hover, 
+.close-formation-btn:hover {
+    background-color: #ffbf00;
+    color: #2c3e50;
+    transform: scale(1.05);
+}
+
+/* Masquer les boutons de fermeture originaux */
+.close-modal-btn {
+    display: none !important;
+}

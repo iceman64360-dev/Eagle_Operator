@@ -178,56 +178,52 @@ function displaySanctions(soldier) {
     const container = document.getElementById('sanctions-container');
     const noSanctionsMsg = document.getElementById('no-sanctions-message');
     
-    if (!container) {
-        console.error('Conteneur des sanctions non trouvé');
-        return;
-    }
+    container.innerHTML = '';
     
-    // Nettoyer le conteneur (sauf le message "aucune sanction")
-    const elements = container.querySelectorAll('.sanction-item');
-    elements.forEach(el => el.remove());
-    
-    // Vérifier si le soldat a des sanctions
     if (!soldier.sanctions || soldier.sanctions.length === 0) {
-        if (noSanctionsMsg) noSanctionsMsg.style.display = 'block';
+        const noSanctionsMsg = document.createElement('p');
+        noSanctionsMsg.className = 'no-sanctions-message';
+        noSanctionsMsg.textContent = 'Aucune sanction enregistrée.';
+        container.appendChild(noSanctionsMsg);
         return;
     }
     
-    // Masquer le message "aucune sanction"
-    if (noSanctionsMsg) noSanctionsMsg.style.display = 'none';
-    
-    // Trier les sanctions par date (plus récentes d'abord)
+    // Trier les sanctions par date (plus récentes en premier)
     const sortedSanctions = [...soldier.sanctions].sort((a, b) => {
         return new Date(b.date) - new Date(a.date);
     });
     
-    // Afficher chaque sanction
     sortedSanctions.forEach(sanction => {
         const sanctionElement = document.createElement('div');
         sanctionElement.className = 'sanction-item';
         sanctionElement.dataset.id = sanction.id;
         
-        // Formater la date
-        const formattedDate = formatDate(sanction.date);
-        
-        // Déterminer la classe CSS en fonction du type de sanction
+        // Ajouter une classe en fonction de la gravité
         let severityClass = '';
-        switch (sanction.type) {
+        switch(sanction.type) {
             case 'Avertissement':
-                severityClass = 'warning';
+                severityClass = 'avertissement';
                 break;
             case 'Blâme':
-                severityClass = 'medium';
+                severityClass = 'blame';
                 break;
             case 'Consigne':
-                severityClass = 'serious';
+                severityClass = 'consigne';
                 break;
             case 'Suspension':
-                severityClass = 'severe';
+                severityClass = 'suspension';
                 break;
             default:
                 severityClass = '';
         }
+        
+        // Formater la date
+        const sanctionDate = new Date(sanction.date);
+        const formattedDate = sanctionDate.toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
         
         sanctionElement.innerHTML = `
             <div class="sanction-header ${severityClass}">
@@ -237,11 +233,140 @@ function displaySanctions(soldier) {
             <div class="sanction-content">
                 <p class="sanction-motif">${sanction.motif}</p>
                 <p class="sanction-observer">Observateur: ${sanction.observateur}</p>
+                <div class="sanction-actions">
+                    <button class="delete-sanction-btn" data-id="${sanction.id}">Supprimer</button>
+                </div>
             </div>
         `;
         
         container.appendChild(sanctionElement);
     });
+    
+    // Ajouter les écouteurs d'événements pour les boutons de suppression
+    addDeleteSanctionListeners(soldier.id);
+}
+
+/**
+ * Ajoute les écouteurs d'événements pour les boutons de suppression de sanctions
+ * @param {string} soldierId - ID du soldat
+ */
+function addDeleteSanctionListeners(soldierId) {
+    const deleteBtns = document.querySelectorAll('.delete-sanction-btn');
+    deleteBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const sanctionId = btn.dataset.id;
+            
+            // Récupérer le type de sanction pour l'afficher dans la confirmation
+            let soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+            const soldier = soldiers.find(s => s.id === soldierId);
+            if (!soldier) return;
+            
+            const sanction = soldier.sanctions.find(s => s.id === sanctionId);
+            if (!sanction) return;
+            
+            // Créer la boîte de dialogue de confirmation
+            showConfirmationDialog(
+                'Confirmation de suppression',
+                `Voulez-vous vraiment supprimer cette sanction de type "${sanction.type}" ?`,
+                () => {
+                    // Action à effectuer si confirmé
+                    deleteSanction(soldierId, sanctionId);
+                }
+            );
+        });
+    });
+}
+
+/**
+ * Affiche une boîte de dialogue de confirmation personnalisée
+ * @param {string} title - Titre de la boîte de dialogue
+ * @param {string} message - Message à afficher
+ * @param {Function} onConfirm - Fonction à exécuter si l'utilisateur confirme
+ */
+function showConfirmationDialog(title, message, onConfirm) {
+    // Créer l'élément de la boîte de dialogue
+    const dialog = document.createElement('div');
+    dialog.className = 'confirmation-dialog';
+    
+    dialog.innerHTML = `
+        <div class="confirmation-content">
+            <h3>${title}</h3>
+            <p>${message}</p>
+            <div class="confirmation-buttons">
+                <button class="cancel-btn">Annuler</button>
+                <button class="confirm-btn">Confirmer</button>
+            </div>
+        </div>
+    `;
+    
+    // Ajouter la boîte de dialogue au document
+    document.body.appendChild(dialog);
+    
+    // Ajouter les écouteurs d'événements
+    const cancelBtn = dialog.querySelector('.cancel-btn');
+    const confirmBtn = dialog.querySelector('.confirm-btn');
+    
+    cancelBtn.addEventListener('click', () => {
+        document.body.removeChild(dialog);
+    });
+    
+    confirmBtn.addEventListener('click', () => {
+        onConfirm();
+        document.body.removeChild(dialog);
+    });
+}
+
+/**
+ * Supprime une sanction pour un soldat
+ * @param {string} soldierId - ID du soldat
+ * @param {string} sanctionId - ID de la sanction à supprimer
+ */
+function deleteSanction(soldierId, sanctionId) {
+    // Récupérer les données des soldats
+    let soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+    
+    // Trouver le soldat concerné
+    const soldierIndex = soldiers.findIndex(s => s.id === soldierId);
+    if (soldierIndex === -1) {
+        console.error(`Soldat avec ID ${soldierId} non trouvé`);
+        return;
+    }
+    
+    // Trouver la sanction à supprimer
+    const sanctionIndex = soldiers[soldierIndex].sanctions.findIndex(s => s.id === sanctionId);
+    if (sanctionIndex === -1) {
+        console.error(`Sanction avec ID ${sanctionId} non trouvée`);
+        return;
+    }
+    
+    // Récupérer les informations de la sanction pour l'historique
+    const sanction = soldiers[soldierIndex].sanctions[sanctionIndex];
+    
+    // Supprimer la sanction
+    soldiers[soldierIndex].sanctions.splice(sanctionIndex, 1);
+    
+    // Ajouter un événement à l'historique du soldat
+    if (!soldiers[soldierIndex].history) {
+        soldiers[soldierIndex].history = [];
+    }
+    
+    soldiers[soldierIndex].history.push({
+        id: generateUniqueId(),
+        date: new Date().toISOString(),
+        type: 'sanction',
+        description: `Suppression de la sanction: ${sanction.type} - ${sanction.motif}`,
+        details: {
+            sanctionType: sanction.type,
+            motif: sanction.motif,
+            action: 'suppression'
+        }
+    });
+    
+    // Sauvegarder les données
+    localStorage.setItem('eagleOperator_soldiers', JSON.stringify(soldiers));
+    
+    // Mettre à jour l'affichage des sanctions
+    displaySanctions(soldiers[soldierIndex]);
 }
 
 /**

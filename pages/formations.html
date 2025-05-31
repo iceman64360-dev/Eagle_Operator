@@ -6,6 +6,7 @@
     <title>Eagle Company - Formations</title>
     <link rel="stylesheet" href="../assets/css/style.css"> <!-- Styles globaux -->
     <link rel="stylesheet" href="../assets/css/formations.css"> <!-- Styles spécifiques aux formations -->
+    <link rel="stylesheet" href="../assets/css/modal-buttons.css"> <!-- Styles pour les boutons de fermeture -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -58,7 +59,7 @@
             <div class="modal military-modal formation-detail-modal">
                 <div class="modal-header-container">
                     <h2 id="formation-detail-title">Détail de la Formation</h2>
-                    <button class="close-modal-btn" id="close-formation-detail">Fermer</button>
+                    <button class="close-formation-btn" id="close-formation-detail-btn">Fermer la formation</button>
                 </div>
                 <div class="formation-detail-content">
                     <div class="formation-info">
@@ -98,7 +99,7 @@
             <div class="modal military-modal">
                 <div class="modal-header-container">
                     <h2 id="formation-edit-title">Ajouter une Formation</h2>
-                    <button class="close-modal-btn" id="close-formation-edit">Fermer</button>
+                    <button class="close-formation-btn" id="close-formation-edit-btn">Fermer la formation</button>
                 </div>
                 <form id="formation-form">
                     <div class="form-group">
@@ -147,7 +148,7 @@
             <div class="modal military-modal">
                 <div class="modal-header-container">
                     <h2>Assigner des Soldats à la Formation</h2>
-                    <button class="close-modal-btn" id="close-assign-soldiers">Fermer</button>
+                    <button class="close-formation-btn" id="close-assign-soldiers-btn">Fermer l'assignation</button>
                 </div>
                 <div class="assign-soldiers-content">
                     <div class="search-filter-container">
@@ -157,9 +158,27 @@
                             <option value="available">Disponibles uniquement</option>
                             <option value="eligible">Éligibles uniquement</option>
                         </select>
+                        <select id="unit-filter" class="military-select" aria-label="Filtrer par unité" title="Filtrer par unité">
+                            <option value="all">Toutes les unités</option>
+                            <!-- Les options d'unités seront générées dynamiquement -->
+                        </select>
                     </div>
-                    <div class="soldiers-list" id="assignable-soldiers-list">
-                        <!-- Liste des soldats générée dynamiquement -->
+                    <div class="assignment-tabs">
+                        <div class="tab active" data-tab="soldiers">Soldats</div>
+                        <div class="tab" data-tab="units">Unités</div>
+                    </div>
+                    <div class="tab-content active" id="soldiers-tab">
+                        <div class="soldiers-list" id="assignable-soldiers-list">
+                            <!-- Liste des soldats générée dynamiquement -->
+                        </div>
+                    </div>
+                    <div class="tab-content" id="units-tab">
+                        <div class="units-list" id="assignable-units-list">
+                            <!-- Liste des unités générée dynamiquement -->
+                        </div>
+                        <div class="unit-soldiers-list" id="unit-soldiers-list">
+                            <!-- Liste des soldats de l'unité sélectionnée -->
+                        </div>
                     </div>
                     <div class="assign-actions">
                         <button type="button" id="cancel-assign" class="military-btn cancel-btn">Annuler</button>
@@ -176,5 +195,6 @@
 
     <!-- Scripts -->
     <script src="../assets/js/formationManager.js"></script>
+    <script src="../assets/js/formationButtonsFix.js"></script>
 </body>
 </html>
