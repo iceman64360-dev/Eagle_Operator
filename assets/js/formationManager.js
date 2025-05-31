@@ -818,6 +818,12 @@ function openAssignSoldiersModal(formationId) {
     
     console.log('Formation trouvée:', formation.name);
     
+    // S'assurer que la formation a un tableau participants
+    if (!formation.participants) {
+        formation.participants = [];
+        console.log('Initialisation du tableau participants pour la formation');
+    }
+    
     // Mettre à jour l'ID de la formation sélectionnée
     selectedFormationId = formationId;
     
@@ -1054,6 +1060,12 @@ function assignSelectedSoldiersToFormation() {
         return;
     }
     
+    // S'assurer que la formation a un tableau participants
+    if (!formation.participants) {
+        formation.participants = [];
+        console.log('Initialisation du tableau participants pour la formation');
+    }
+    
     // Stocker le nombre de soldats avant assignation pour le message
     const nbSoldiers = selectedSoldiers.length;
     
@@ -1073,6 +1085,13 @@ function assignSelectedSoldiersToFormation() {
     
     // Réinitialiser la sélection
     selectedSoldiers = [];
+    
+    // Fermer la modale d'assignation
+    const modal = document.getElementById('assign-soldiers-modal');
+    if (modal) {
+        modal.classList.add('hidden-modal');
+        console.log('Fermeture de la modale d\'assignation après assignation réussie');
+    }
     
     // Afficher un message de confirmation
     alert(`${nbSoldiers} soldat${nbSoldiers > 1 ? 's' : ''} assigné${nbSoldiers > 1 ? 's' : ''} à la formation ${formation.name}`);
