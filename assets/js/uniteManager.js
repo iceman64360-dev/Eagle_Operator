@@ -1600,3 +1600,5 @@ assignSelectedSoldiers = function() {
         alert('Une erreur est survenue lors de l\'affectation des soldats. Veuillez réessayer.');
     }
 }
+// Fermeture du bloc principal
+});
