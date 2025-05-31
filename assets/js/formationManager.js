@@ -1983,6 +1983,7 @@ function markCommandersInSoldierList(soldiers) {
  * Supprime une formation et met à jour la base de données
  * @param {string} formationId - Identifiant de la formation à supprimer
  */
+function deleteFormation(formationId) {
     console.log('Suppression de la formation avec ID:', formationId);
     
     // Trouver l'index de la formation dans le tableau
