@@ -2,8 +2,8 @@
 // Ce fichier contient toutes les fonctions nécessaires pour assigner des opérateurs aux unités
 
 // Variables globales pour la modale d'assignation
-let currentAssignUnit = null;
-let selectedOperators = [];
+var currentAssignUnit = null;
+var selectedOperators = [];
 
 /**
  * Récupère toutes les unités depuis le localStorage
@@ -70,6 +70,14 @@ function openAssignOperatorsModal(unitId) {
     try {
         console.log('Ouverture de la modale d\'assignation pour l\'unité:', unitId);
         
+        // S'assurer que les variables globales sont initialisées
+        if (typeof currentAssignUnit === 'undefined') {
+            window.currentAssignUnit = null;
+        }
+        if (typeof selectedOperators === 'undefined') {
+            window.selectedOperators = [];
+        }
+        
         // Récupérer l'unité
         const units = getUnits();
         const unit = units.find(u => u.id_unite === unitId || u.id === unitId);
@@ -81,10 +89,10 @@ function openAssignOperatorsModal(unitId) {
         }
         
         // Stocker l'unité courante
-        currentAssignUnit = unit;
+        window.currentAssignUnit = unit;
         
         // Réinitialiser la liste des soldats sélectionnés
-        selectedOperators = [];
+        window.selectedOperators = [];
         
         // Mettre à jour le titre de la modale
         const unitNameTitle = document.getElementById('unit-name-title');
@@ -129,11 +137,18 @@ function closeAssignOperatorsModal() {
         const modal = document.getElementById('assignSoldiersModal');
         if (modal) {
             modal.style.display = 'none';
+            console.log('Modale fermée');
+            
+            // Réinitialiser les variables
+            window.currentAssignUnit = null;
+            window.selectedOperators = [];
+            
+            // Réinitialiser la liste des soldats sélectionnés affichée
+            const selectedSoldiersList = document.getElementById('selected-soldiers-list');
+            if (selectedSoldiersList) {
+                selectedSoldiersList.innerHTML = '';
+            }
         }
-        
-        // Réinitialiser les variables
-        currentAssignUnit = null;
-        selectedOperators = [];
     } catch (error) {
         console.error('Erreur lors de la fermeture de la modale d\'assignation:', error);
     }
@@ -277,20 +292,25 @@ function createSoldierItemForAssignment(soldier) {
         checkbox.className = 'soldier-checkbox';
         checkbox.dataset.soldierId = soldier.id;
         checkbox.onchange = function() {
-            if (this.checked) {
-                if (!selectedOperators.includes(soldier.id)) {
-                    // Ajouter le soldat avec son rôle par défaut
+            const isSelected = this.checked;
+            if (isSelected) {
+                // Vérifier si le soldat est déjà sélectionné
+                const alreadySelected = window.selectedOperators.some(op => op.id === soldier.id);
+                if (!alreadySelected) {
+                    // Récupérer la valeur du rôle depuis le sélecteur
                     const roleSelect = document.getElementById('role-select-' + soldier.id);
-                    const role = roleSelect ? roleSelect.value : 'Opérateur';
-                    selectedOperators.push({
+                    const selectedRole = roleSelect ? roleSelect.value : 'Opérateur';
+                    
+                    // Ajouter le soldat à la liste des sélectionnés avec son rôle
+                    window.selectedOperators.push({
                         id: soldier.id,
-                        role: role
+                        role: selectedRole
                     });
                 }
             } else {
-                const index = selectedOperators.findIndex(op => op.id === soldier.id);
+                const index = window.selectedOperators.findIndex(op => op.id === soldier.id);
                 if (index !== -1) {
-                    selectedOperators.splice(index, 1);
+                    window.selectedOperators.splice(index, 1);
                 }
             }
             updateAssignButtonState();
@@ -332,9 +352,9 @@ function createSoldierItemForAssignment(soldier) {
         
         roleSelect.onchange = function() {
             // Mettre à jour le rôle dans la liste des opérateurs sélectionnés
-            const index = selectedOperators.findIndex(op => op.id === soldier.id);
+            const index = window.selectedOperators.findIndex(op => op.id === soldier.id);
             if (index !== -1) {
-                selectedOperators[index].role = this.value;
+                window.selectedOperators[index].role = this.value;
             }
         };
         
@@ -362,7 +382,12 @@ function updateAssignButtonState() {
         const selectedCount = document.getElementById('selected-count');
         
         if (confirmBtn && selectedCount) {
-            const count = selectedOperators.length;
+            // S'assurer que la variable globale est initialisée
+            if (typeof selectedOperators === 'undefined') {
+                window.selectedOperators = [];
+            }
+            
+            const count = window.selectedOperators.length;
             selectedCount.textContent = count;
             
             if (count > 0) {
@@ -381,27 +406,35 @@ function updateAssignButtonState() {
  */
 function assignSelectedOperators() {
     try {
-        console.log('Fonction assignSelectedOperators appelée');
-        console.log('Unité courante:', currentAssignUnit);
-        console.log('Soldats sélectionnés:', selectedOperators);
+        // S'assurer que les variables globales sont initialisées
+        if (typeof currentAssignUnit === 'undefined') {
+            window.currentAssignUnit = null;
+        }
+        if (typeof selectedOperators === 'undefined') {
+            window.selectedOperators = [];
+        }
         
-        if (!currentAssignUnit) {
+        console.log('Fonction assignSelectedOperators appelée');
+        console.log('Unité courante:', window.currentAssignUnit);
+        console.log('Soldats sélectionnés:', window.selectedOperators);
+        
+        if (!window.currentAssignUnit) {
             console.error('Aucune unité courante définie');
             alert('Erreur: Aucune unité sélectionnée pour l\'affectation.');
             return;
         }
         
-        if (selectedOperators.length === 0) {
+        if (window.selectedOperators.length === 0) {
             console.error('Aucun soldat sélectionné');
             alert('Veuillez sélectionner au moins un soldat à affecter.');
             return;
         }
         
         // Assigner chaque soldat sélectionné à l'unité
-        selectedOperators.forEach(operator => {
+        window.selectedOperators.forEach(operator => {
             // Mettre à jour l'unité du soldat
-            const unitName = currentAssignUnit.nom || currentAssignUnit.name || 'Unité sans nom';
-            const unitId = currentAssignUnit.id_unite || currentAssignUnit.id;
+            const unitName = window.currentAssignUnit.nom || window.currentAssignUnit.name || 'Unité sans nom';
+            const unitId = window.currentAssignUnit.id_unite || window.currentAssignUnit.id;
             console.log(`Affectation du soldat ${operator.id} avec le rôle ${operator.role} à l'unité ${unitName}`);
             
             // Récupérer les données actuelles du soldat
@@ -426,7 +459,7 @@ function assignSelectedOperators() {
         closeAssignOperatorsModal();
         
         // Afficher un message de succès
-        alert(`${selectedOperators.length} soldat(s) affecté(s) avec succès à l'unité ${currentAssignUnit.nom || currentAssignUnit.name}.`);
+        alert(`${window.selectedOperators.length} soldat(s) affecté(s) avec succès à l'unité ${window.currentAssignUnit.nom || window.currentAssignUnit.name}.`);
         
         // Recharger la page pour voir les changements
         location.reload();
