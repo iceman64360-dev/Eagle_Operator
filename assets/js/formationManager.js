@@ -257,11 +257,24 @@ function setupFormationDetailModal() {
             console.log('Bouton supprimer formation cliqué');
             if (selectedFormationId) {
                 console.log('Formation à supprimer ID:', selectedFormationId);
-                // Demander confirmation avant de supprimer
-                if (confirm('Êtes-vous sûr de vouloir supprimer cette formation ? Cette action est irréversible.')) {
-                    deleteFormation(selectedFormationId);
-                    modal.classList.add('hidden-modal');
+                
+                // Récupérer le nom de la formation pour l'afficher dans la confirmation
+                const formation = formationsData.find(f => f.id === selectedFormationId);
+                if (!formation) {
+                    console.error('Formation non trouvée pour la suppression');
+                    return;
                 }
+                
+                // Utiliser la boîte de dialogue personnalisée
+                showConfirmationDialog(
+                    'Confirmation de suppression',
+                    `Êtes-vous sûr de vouloir supprimer la formation "${formation.name}" ? Cette action est irréversible.`,
+                    () => {
+                        // Action à effectuer si confirmé
+                        deleteFormation(selectedFormationId);
+                        modal.classList.add('hidden-modal');
+                    }
+                );
             } else {
                 console.error('Aucune formation sélectionnée pour la suppression');
             }
@@ -1048,17 +1061,31 @@ function checkEligibility(soldier, formation) {
  * Assigne les soldats sélectionnés à la formation
  */
 function assignSelectedSoldiersToFormation() {
-    if (!selectedFormationId || selectedSoldiers.length === 0) {
-        console.log('Aucun soldat sélectionné ou aucune formation sélectionnée');
+    console.log('Début de l\'assignation des soldats...');
+    console.log('Formation ID:', selectedFormationId);
+    console.log('Soldats sélectionnés:', selectedSoldiers);
+    
+    if (!selectedFormationId) {
+        console.error('Aucune formation sélectionnée pour l\'assignation');
+        alert('Erreur: Aucune formation sélectionnée');
+        return;
+    }
+    
+    if (selectedSoldiers.length === 0) {
+        console.error('Aucun soldat sélectionné pour l\'assignation');
+        alert('Veuillez sélectionner au moins un soldat à assigner');
         return;
     }
     
     // Récupérer la formation sélectionnée
     const formation = formationsData.find(f => f.id === selectedFormationId);
     if (!formation) {
-        console.error('Formation non trouvée:', selectedFormationId);
+        console.error('Formation non trouvée dans les données:', selectedFormationId);
+        alert('Erreur: Formation introuvable');
         return;
     }
+    
+    console.log('Formation trouvée:', formation.name);
     
     // S'assurer que la formation a un tableau participants
     if (!formation.participants) {
@@ -1066,22 +1093,51 @@ function assignSelectedSoldiersToFormation() {
         console.log('Initialisation du tableau participants pour la formation');
     }
     
+    // Vérifier la capacité de la formation
+    const capacity = parseInt(formation.capacity) || Infinity;
+    const currentParticipants = formation.participants.length;
+    const availableSlots = capacity - currentParticipants;
+    
+    console.log('Capacité de la formation:', capacity);
+    console.log('Participants actuels:', currentParticipants);
+    console.log('Places disponibles:', availableSlots);
+    
+    if (availableSlots <= 0) {
+        console.warn('La formation est déjà complète');
+        alert(`La formation ${formation.name} est déjà complète (${currentParticipants}/${capacity}).`);
+        return;
+    }
+    
+    // Limiter le nombre de soldats à assigner si nécessaire
+    let soldiersToAssign = selectedSoldiers;
+    if (selectedSoldiers.length > availableSlots) {
+        soldiersToAssign = selectedSoldiers.slice(0, availableSlots);
+        console.warn(`Limitation du nombre de soldats assignés à ${availableSlots} en raison de la capacité de la formation`);
+    }
+    
     // Stocker le nombre de soldats avant assignation pour le message
-    const nbSoldiers = selectedSoldiers.length;
+    const nbSoldiers = soldiersToAssign.length;
     
     // Ajouter les soldats sélectionnés à la formation
-    selectedSoldiers.forEach(soldierId => {
+    soldiersToAssign.forEach(soldierId => {
         if (!formation.participants.includes(soldierId)) {
             formation.participants.push(soldierId);
             console.log(`Soldat ${soldierId} assigné à la formation ${formation.name}`);
+            
+            // Mettre à jour l'historique du soldat
+            updateSoldierHistory(soldierId, `Assigné à la formation "${formation.name}"`);
+        } else {
+            console.warn(`Le soldat ${soldierId} est déjà assigné à cette formation`);
         }
     });
     
     // Sauvegarder les modifications
     saveFormations();
+    console.log('Formations sauvegardées dans le localStorage');
     
     // Mettre à jour l'affichage
     displayFormations(formationsData);
+    console.log('Affichage des formations mis à jour');
     
     // Réinitialiser la sélection
     selectedSoldiers = [];
@@ -1095,6 +1151,11 @@ function assignSelectedSoldiersToFormation() {
     
     // Afficher un message de confirmation
     alert(`${nbSoldiers} soldat${nbSoldiers > 1 ? 's' : ''} assigné${nbSoldiers > 1 ? 's' : ''} à la formation ${formation.name}`);
+    
+    // Ouvrir la modale de détail pour voir les participants
+    setTimeout(() => {
+        openFormationDetailModal(selectedFormationId);
+    }, 500);
 }
 
 /**
@@ -1509,6 +1570,45 @@ function deleteFormation(formationId) {
     
     // Afficher un message de confirmation
     alert(`La formation "${formation.name}" a été supprimée avec succès.`);
+}
+
+/**
+ * Affiche une boîte de dialogue de confirmation personnalisée
+ * @param {string} title - Titre de la boîte de dialogue
+ * @param {string} message - Message à afficher
+ * @param {Function} onConfirm - Fonction à exécuter si l'utilisateur confirme
+ */
+function showConfirmationDialog(title, message, onConfirm) {
+    // Créer l'élément de la boîte de dialogue
+    const dialog = document.createElement('div');
+    dialog.className = 'confirmation-dialog';
+    
+    dialog.innerHTML = `
+        <div class="confirmation-content">
+            <h3>${title}</h3>
+            <p>${message}</p>
+            <div class="confirmation-buttons">
+                <button class="cancel-btn">Annuler</button>
+                <button class="confirm-btn danger-btn">Confirmer</button>
+            </div>
+        </div>
+    `;
+    
+    // Ajouter la boîte de dialogue au document
+    document.body.appendChild(dialog);
+    
+    // Ajouter les écouteurs d'événements
+    const cancelBtn = dialog.querySelector('.cancel-btn');
+    const confirmBtn = dialog.querySelector('.confirm-btn');
+    
+    cancelBtn.addEventListener('click', () => {
+        document.body.removeChild(dialog);
+    });
+    
+    confirmBtn.addEventListener('click', () => {
+        onConfirm();
+        document.body.removeChild(dialog);
+    });
 }
 
 // Fin du fichier formationManager.js
