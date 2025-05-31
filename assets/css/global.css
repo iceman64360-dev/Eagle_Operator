@@ -1,0 +1,170 @@
+/* =========================
+   GLOBAL DESIGN (inspiré de formations.css)
+   ========================= */
+:root {
+  --main-bg: #23272f;
+  --card-bg: #2a2f3b;
+  --accent: #4ecca3;
+  --danger: #e84545;
+  --warning: #ffb347;
+  --info: #36a2eb;
+  --success: #43d18d;
+  --text: #f5f6fa;
+  --muted: #c2c8d0;
+  --border-radius: 16px;
+  --shadow: 0 2px 10px rgba(0,0,0,0.12);
+  --badge-assignee: #ffb347;
+  --badge-success: #43d18d;
+  --badge-failed: #e84545;
+  --badge-default: #36a2eb;
+}
+
+body {
+  background: var(--main-bg);
+  color: var(--text);
+  font-family: 'Roboto', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 700;
+  margin-bottom: 0.5em;
+  color: var(--text);
+}
+
+.btn, .action-btn {
+  background: var(--accent);
+  color: var(--main-bg);
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.5em 1.4em;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  margin: 0.2em 0.5em 0.2em 0;
+  box-shadow: var(--shadow);
+}
+.btn:hover, .action-btn:hover {
+  background: var(--danger);
+  color: #fff;
+}
+
+.card {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  padding: 1.2em;
+  margin-bottom: 1.2em;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+.card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.7em;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25em 0.9em;
+  border-radius: 12px;
+  font-size: 0.95em;
+  font-weight: 600;
+  margin-left: 0.5em;
+}
+.badge-assign {
+  background: var(--badge-assignee);
+  color: #23272f;
+}
+.badge-success {
+  background: var(--badge-success);
+  color: #fff;
+}
+.badge-failed {
+  background: var(--badge-failed);
+  color: #fff;
+}
+.badge-default {
+  background: var(--badge-default);
+  color: #fff;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 2px solid var(--accent);
+  margin-bottom: 1em;
+}
+.tab-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.1em;
+  font-weight: 600;
+  padding: 0.7em 1.5em;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: color 0.2s, border-bottom 0.2s;
+}
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom: 3px solid var(--accent);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  margin-bottom: 1.5em;
+}
+.table th, .table td {
+  padding: 0.8em 1em;
+  border-bottom: 1px solid #333;
+}
+.table th {
+  background: var(--accent);
+  color: var(--main-bg);
+  font-weight: 700;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0; top: 0; width: 100vw; height: 100vh;
+  background: rgba(40,42,54,0.85);
+  align-items: center;
+  justify-content: center;
+}
+.modal.active {
+  display: flex;
+}
+.modal-content {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 2em;
+  box-shadow: var(--shadow);
+  min-width: 320px;
+  max-width: 95vw;
+}
+
+/* Utilitaires */
+.text-center { text-align: center; }
+.flex-center { display: flex; justify-content: center; align-items: center; }
+.mb-2 { margin-bottom: 2em; }
+.mt-2 { margin-top: 2em; }
+
+/* Statuts personnalisés pour badges */
+.statut-color-actif { color: #43d18d; font-weight: bold; }
+.statut-color-inactif { color: #e84545; font-weight: bold; }
+.statut-color-permission { color: #ffb347; font-weight: bold; }
+.statut-color-recrue { color: #36a2eb; font-weight: bold; }
+.statut-color-default { color: var(--muted); font-weight: bold; }
