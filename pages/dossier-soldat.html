@@ -6,6 +6,8 @@
     <title>Eagle Company - Dossier Soldat</title>
     <link rel="stylesheet" href="../assets/css/main.css">
     <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="stylesheet" href="../assets/css/dossier-soldat.css">
+    <link rel="stylesheet" href="../assets/css/progression.css">
 </head>
 <body>
     <header class="dashboard-header">
@@ -28,14 +30,148 @@
         </nav>
 
         <main class="dashboard-main">
-            <h1>Dossier Individuel du Soldat</h1>
-            <p>Contenu de la page du dossier soldat à venir...</p>
-            <!-- Typiquement, cette page pourrait nécessiter un ID de soldat pour afficher des détails spécifiques -->
+            <div class="soldier-file-header">
+                <h1>Dossier Individuel du Soldat</h1>
+                <button id="btn-close-dossier" class="btn-close">Retour à la liste</button>
+            </div>
+            
+            <div id="soldier-loading" class="loading-message">Chargement du dossier soldat...</div>
+            
+            <div id="soldier-container" class="soldier-container hidden">
+                <div class="soldier-header">
+                    <div class="soldier-photo-container">
+                        <img id="soldier-photo" src="../assets/img/default-avatar.png" alt="Photo du soldat">
+                    </div>
+                    <div class="soldier-basic-info">
+                        <h2 id="soldier-name">Nom du soldat</h2>
+                        <p><strong>Matricule:</strong> <span id="soldier-id"></span></p>
+                        <p><strong>Grade:</strong> <span id="soldier-grade"></span></p>
+                        <p><strong>Statut:</strong> <span id="soldier-statut"></span></p>
+                        <p><strong>Unité:</strong> <span id="soldier-unite"></span></p>
+                        <p><strong>Date d'incorporation:</strong> <span id="soldier-date"></span></p>
+                    </div>
+                    <div class="soldier-actions">
+                        <button id="btn-edit-soldier" class="action-button">Modifier</button>
+                        <button id="btn-promote-soldier" class="action-button">Promouvoir</button>
+                        <button id="btn-change-status" class="action-button">Changer statut</button>
+                        <button id="btn-reassign" class="action-button">Réaffecter</button>
+                        <button id="btn-add-sanction" class="action-button">Ajouter sanction</button>
+                    </div>
+                </div>
+                
+                <div class="soldier-tabs">
+                    <button class="tab-button active" data-tab="info">Informations</button>
+                    <button class="tab-button" data-tab="progression">Progression</button>
+                    <button class="tab-button" data-tab="sanctions">Sanctions</button>
+                    <button class="tab-button" data-tab="history">Historique</button>
+                </div>
+                
+                <div class="tab-content">
+                    <!-- Onglet Informations -->
+                    <div id="tab-info" class="tab-pane active">
+                        <div class="info-section">
+                            <h3>Informations personnelles</h3>
+                            <div id="personal-info" class="info-content">
+                                <!-- Contenu dynamique -->
+                            </div>
+                        </div>
+                        <div class="info-section">
+                            <h3>Formations suivies</h3>
+                            <div id="formations-list" class="info-content">
+                                <!-- Contenu dynamique -->
+                            </div>
+                        </div>
+                        <div class="info-section">
+                            <h3>Missions effectuées</h3>
+                            <div id="missions-list" class="info-content">
+                                <!-- Contenu dynamique -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Onglet Progression -->
+                    <div id="tab-progression" class="tab-pane">
+                        <div id="progression-content">
+                            <!-- Contenu dynamique de progression -->
+                        </div>
+                    </div>
+                    
+                    <!-- Onglet Sanctions -->
+                    <div id="tab-sanctions" class="tab-pane">
+                        <div class="sanctions-header">
+                            <h3>Liste des sanctions</h3>
+                            <button id="btn-filter-sanctions" class="filter-button">Filtrer</button>
+                        </div>
+                        <div id="sanctions-list" class="sanctions-list">
+                            <!-- Contenu dynamique des sanctions -->
+                            <p id="no-sanctions-message" class="no-data-message">Aucune sanction enregistrée.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Onglet Historique -->
+                    <div id="tab-history" class="tab-pane">
+                        <div class="history-filters">
+                            <select id="history-filter-type">
+                                <option value="">Tous les types</option>
+                                <option value="promotion">Promotions</option>
+                                <option value="statut">Changements de statut</option>
+                                <option value="affectation">Affectations</option>
+                                <option value="sanction">Sanctions</option>
+                            </select>
+                            <button id="reset-history-filter" class="filter-button">Réinitialiser</button>
+                        </div>
+                        <div id="history-list" class="history-list">
+                            <!-- Contenu dynamique de l'historique -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal pour ajouter une sanction -->
+            <div id="sanction-modal" class="modal hidden-modal">
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h2>Ajouter une sanction</h2>
+                    <form id="sanction-form">
+                        <div class="form-group">
+                            <label for="sanction-type">Type de sanction:</label>
+                            <select id="sanction-type" required>
+                                <option value="">Sélectionner un type</option>
+                                <option value="Avertissement">Avertissement</option>
+                                <option value="Blâme">Blâme</option>
+                                <option value="Consigne">Consigne</option>
+                                <option value="Suspension">Suspension</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="sanction-motif">Motif:</label>
+                            <textarea id="sanction-motif" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="sanction-date">Date:</label>
+                            <input type="date" id="sanction-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sanction-observateur">Observateur:</label>
+                            <input type="text" id="sanction-observateur" required>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" id="cancel-sanction">Annuler</button>
+                            <button type="submit" id="submit-sanction">Valider</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </main>
     </div>
 
     <footer class="dashboard-footer">
         <p>&copy; 2025 Eagle Company - Tous droits réservés.</p>
     </footer>
+    <script src="../assets/js/dataManager.js"></script>
+    <script src="../assets/js/soldierManager.js"></script>
+    <script src="../assets/js/progressionManager.js"></script>
+    <script src="../assets/js/sanctionManager.js"></script>
+    <script src="../assets/js/dossierSoldat.js"></script>
 </body>
 </html>
