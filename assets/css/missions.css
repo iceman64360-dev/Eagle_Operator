@@ -1,0 +1,389 @@
+/**
+ * Styles spécifiques pour la page des missions
+ */
+
+/* Conteneur principal */
+.missions-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* En-tête de la page */
+.missions-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.missions-header h1 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-family: 'Orbitron', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.missions-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+/* Grille des missions */
+.missions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+/* Carte de mission */
+.mission-card {
+    background-color: #1f2937;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.mission-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+}
+
+.mission-card-header {
+    padding: 15px;
+    background-color: #111827;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mission-card-header h3 {
+    margin: 0;
+    color: #e5e7eb;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.mission-type-badge {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Couleurs des badges par type de mission */
+.mission-type-badge.combat {
+    background-color: #ef4444;
+    color: white;
+}
+
+.mission-type-badge.reconnaissance {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.mission-type-badge.extraction {
+    background-color: #10b981;
+    color: white;
+}
+
+.mission-type-badge.escorte {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.mission-type-badge.securisation {
+    background-color: #8b5cf6;
+    color: white;
+}
+
+.mission-card-body {
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.mission-description {
+    color: #d1d5db;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    flex-grow: 1;
+}
+
+.mission-metadata {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.metadata-item {
+    display: flex;
+    font-size: 0.85rem;
+    color: #9ca3af;
+}
+
+.metadata-label {
+    font-weight: 600;
+    margin-right: 5px;
+    min-width: 80px;
+}
+
+.mission-status {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    display: inline-block;
+}
+
+/* Couleurs des statuts */
+.mission-status.planifiee {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.mission-status.en_cours {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.mission-status.terminee {
+    background-color: #10b981;
+    color: white;
+}
+
+.mission-status.annulee {
+    background-color: #ef4444;
+    color: white;
+}
+
+.mission-card-footer {
+    padding: 15px;
+    background-color: #111827;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mission-card-footer button {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+}
+
+/* Placeholder pour le chargement */
+.mission-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    background-color: #1f2937;
+    border-radius: 8px;
+    color: #9ca3af;
+}
+
+/* Modale détail mission */
+.mission-detail-modal {
+    max-width: 800px;
+    width: 90%;
+}
+
+.mission-detail-content {
+    padding: 20px;
+}
+
+.mission-info {
+    margin-bottom: 30px;
+}
+
+.mission-info .mission-type-badge {
+    margin-bottom: 15px;
+    display: inline-block;
+}
+
+.mission-info .mission-description {
+    font-size: 1rem;
+    margin-bottom: 20px;
+    color: #e5e7eb;
+    line-height: 1.6;
+}
+
+.mission-info .mission-metadata {
+    background-color: #111827;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.mission-info .metadata-item {
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+}
+
+.mission-participants {
+    margin-bottom: 30px;
+}
+
+.mission-participants h3 {
+    margin-bottom: 15px;
+    color: #e5e7eb;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #374151;
+    padding-bottom: 10px;
+}
+
+.participants-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.participant-item {
+    background-color: #111827;
+    border-radius: 6px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.participant-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.participant-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #374151;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #e5e7eb;
+}
+
+.participant-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.participant-name {
+    font-weight: 600;
+    color: #e5e7eb;
+}
+
+.participant-unit {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+.participant-role {
+    font-size: 0.8rem;
+    color: #d1d5db;
+    background-color: #374151;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.remove-participant-btn {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.remove-participant-btn:hover {
+    background-color: #dc2626;
+}
+
+.mission-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+/* Formulaire d'ajout/édition de mission */
+.objective-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.objective-input {
+    flex-grow: 1;
+}
+
+.remove-objective-btn {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+#add-objective-btn {
+    margin-top: 10px;
+}
+
+/* Modale changement de statut */
+.status-change-content {
+    padding: 20px;
+}
+
+.status-change-content p {
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+}
+
+#current-status {
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .missions-header {
+        flex-direction: column;
+    }
+    
+    .missions-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .missions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .participants-list {
+        grid-template-columns: 1fr;
+    }
+}

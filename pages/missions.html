@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eagle Company - Missions</title>
     <link rel="stylesheet" href="../assets/css/style.css"> <!-- Styles globaux -->
+    <link rel="stylesheet" href="../assets/css/missions.css"> <!-- Styles spécifiques aux missions -->
+    <link rel="stylesheet" href="../assets/css/modal-buttons.css"> <!-- Styles pour les boutons de fermeture -->
+    <link rel="stylesheet" href="../assets/css/notifications.css"> <!-- Styles pour les notifications -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Roboto+Condensed:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header>
@@ -23,14 +27,226 @@
         </nav>
     </header>
 
-    <main>
-            <h1>Liste des Missions</h1>
-            <p>Le contenu spécifique à la gestion et à l'affichage des missions sera développé ici.</p>
-            <!-- Exemple: Tableau des missions, filtres, bouton d'ajout, etc. -->
-        </main>
+    <main class="missions-container">
+        <div class="missions-header">
+            <h1>Catalogue des Missions</h1>
+            <div class="missions-actions">
+                <button id="btn-add-mission" class="military-btn">Ajouter une mission</button>
+                <div class="search-container">
+                    <input type="text" id="mission-search" placeholder="Rechercher une mission..." class="military-input">
+                </div>
+                <div class="filter-container">
+                    <select id="mission-type-filter" class="military-select" aria-label="Filtrer par type de mission" title="Filtrer par type de mission">
+                        <option value="all">Tous les types</option>
+                        <option value="combat">Combat</option>
+                        <option value="reconnaissance">Reconnaissance</option>
+                        <option value="extraction">Extraction</option>
+                        <option value="escorte">Escorte</option>
+                        <option value="securisation">Sécurisation</option>
+                    </select>
+                </div>
+                <div class="filter-container">
+                    <select id="mission-status-filter" class="military-select" aria-label="Filtrer par statut" title="Filtrer par statut">
+                        <option value="all">Tous les statuts</option>
+                        <option value="planifiee">Planifiée</option>
+                        <option value="en_cours">En cours</option>
+                        <option value="terminee">Terminée</option>
+                        <option value="annulee">Annulée</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="missions-grid" id="missions-grid">
+            <!-- Les cartes de mission seront générées dynamiquement ici -->
+            <div class="mission-card mission-placeholder">
+                <h3>Chargement des missions...</h3>
+            </div>
+        </div>
+
+        <!-- Modale détail mission -->
+        <div id="mission-detail-modal" class="modal-bg hidden-modal">
+            <div class="modal military-modal mission-detail-modal">
+                <div class="modal-header-container">
+                    <h2 id="mission-detail-title">Détail de la Mission</h2>
+                    <button class="close-mission-btn" id="close-mission-detail-btn">Fermer la mission</button>
+                </div>
+                <div class="mission-detail-content">
+                    <div class="mission-info">
+                        <div class="mission-type-badge" id="mission-detail-type">Combat</div>
+                        <p class="mission-description" id="mission-detail-description"></p>
+                        <div class="mission-metadata">
+                            <div class="metadata-item">
+                                <span class="metadata-label">Date de début :</span>
+                                <span id="mission-detail-start-date"></span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="metadata-label">Date de fin :</span>
+                                <span id="mission-detail-end-date"></span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="metadata-label">Statut :</span>
+                                <span id="mission-detail-status"></span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="metadata-label">Localisation :</span>
+                                <span id="mission-detail-location"></span>
+                            </div>
+                            <div class="metadata-item">
+                                <span class="metadata-label">Objectifs :</span>
+                                <ul id="mission-detail-objectives"></ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mission-participants">
+                        <h3>Participants</h3>
+                        <div class="participants-list" id="mission-participants-list">
+                            <!-- Liste des participants générée dynamiquement -->
+                        </div>
+                    </div>
+                    <div class="mission-actions">
+                        <button id="btn-edit-mission" class="military-btn">Modifier</button>
+                        <button id="btn-assign-soldiers" class="military-btn gold-btn">Assigner des soldats</button>
+                        <button id="btn-change-status" class="military-btn blue-btn">Changer le statut</button>
+                        <button id="btn-delete-mission" class="military-btn danger-btn">Supprimer la mission</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modale ajout/édition mission -->
+        <div id="mission-edit-modal" class="modal-bg hidden-modal">
+            <div class="modal military-modal">
+                <div class="modal-header-container">
+                    <h2 id="mission-edit-title">Ajouter une Mission</h2>
+                    <button class="close-mission-btn" id="close-mission-edit-btn">Fermer la mission</button>
+                </div>
+                <form id="mission-form">
+                    <div class="form-group">
+                        <label for="mission-name">Nom de la mission</label>
+                        <input type="text" id="mission-name" class="military-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mission-type">Type</label>
+                        <select id="mission-type" class="military-select" required>
+                            <option value="">Sélectionner un type</option>
+                            <option value="combat">Combat</option>
+                            <option value="reconnaissance">Reconnaissance</option>
+                            <option value="extraction">Extraction</option>
+                            <option value="escorte">Escorte</option>
+                            <option value="securisation">Sécurisation</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="mission-description">Description</label>
+                        <textarea id="mission-description" class="military-textarea" rows="4" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label for="mission-start-date">Date de début</label>
+                            <input type="date" id="mission-start-date" class="military-input" required>
+                        </div>
+                        <div class="form-group half">
+                            <label for="mission-end-date">Date de fin (estimée)</label>
+                            <input type="date" id="mission-end-date" class="military-input" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="mission-location">Localisation</label>
+                        <input type="text" id="mission-location" class="military-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mission-status">Statut</label>
+                        <select id="mission-status" class="military-select" required>
+                            <option value="planifiee">Planifiée</option>
+                            <option value="en_cours">En cours</option>
+                            <option value="terminee">Terminée</option>
+                            <option value="annulee">Annulée</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Objectifs</label>
+                        <div id="objectives-container">
+                            <div class="objective-item">
+                                <input type="text" class="military-input objective-input" placeholder="Objectif 1" required>
+                                <button type="button" class="remove-objective-btn">-</button>
+                            </div>
+                        </div>
+                        <button type="button" id="add-objective-btn" class="military-btn small-btn">+ Ajouter un objectif</button>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancel-mission" class="military-btn cancel-btn">Annuler</button>
+                        <button type="submit" class="military-btn gold-btn">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modale assignation de soldats -->
+        <div id="assign-soldiers-modal" class="modal-bg hidden-modal">
+            <div class="modal military-modal">
+                <div class="modal-header-container">
+                    <h2>Assigner des Soldats à la Mission</h2>
+                    <button class="close-mission-btn" id="close-assign-soldiers-btn">Fermer l'assignation</button>
+                </div>
+                <div class="assign-soldiers-content">
+                    <div class="search-filter-container">
+                        <input type="text" id="soldier-search" class="military-input" placeholder="Rechercher un soldat...">
+                        <div class="filter-row">
+                            <select id="unit-filter" class="military-select" aria-label="Filtrer par unité" title="Filtrer par unité">
+                                <option value="all">Toutes les unités</option>
+                                <!-- Les options d'unités seront générées dynamiquement -->
+                            </select>
+                            <div id="selected-unit-name" class="selected-unit">Toutes les unités</div>
+                        </div>
+                    </div>
+                    <div class="results-counter">
+                        <span id="filtered-soldiers-count">0 soldat(s) trouvé(s)</span>
+                    </div>
+                    <div class="soldiers-list" id="assignable-soldiers-list">
+                        <!-- Liste des soldats générée dynamiquement -->
+                    </div>
+                    <div class="assign-actions">
+                        <button type="button" id="cancel-assign" class="military-btn cancel-btn">Annuler</button>
+                        <button type="button" id="confirm-assign" class="military-btn gold-btn">Confirmer l'assignation</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modale changement de statut -->
+        <div id="change-status-modal" class="modal-bg hidden-modal">
+            <div class="modal military-modal">
+                <div class="modal-header-container">
+                    <h2>Changer le statut de la mission</h2>
+                    <button class="close-mission-btn" id="close-status-modal-btn">Fermer</button>
+                </div>
+                <div class="status-change-content">
+                    <p>Statut actuel: <span id="current-status">Planifiée</span></p>
+                    <div class="form-group">
+                        <label for="new-status">Nouveau statut:</label>
+                        <select id="new-status" class="military-select">
+                            <option value="planifiee">Planifiée</option>
+                            <option value="en_cours">En cours</option>
+                            <option value="terminee">Terminée</option>
+                            <option value="annulee">Annulée</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="cancel-status-change" class="military-btn cancel-btn">Annuler</button>
+                        <button type="button" id="confirm-status-change" class="military-btn gold-btn">Confirmer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <footer>
         <p>&copy; 2025 Eagle Company - Tous droits réservés.</p>
     </footer>
+
+    <!-- Scripts -->
+    <script src="../assets/js/missionManager.js"></script>
+    <script src="../assets/js/emergencyModalClose.js"></script>
 </body>
 </html>
