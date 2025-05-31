@@ -368,12 +368,44 @@
 
 .search-filter-container {
     display: flex;
+    flex-direction: column;
     gap: 10px;
     margin-bottom: 20px;
 }
 
 .search-filter-container input {
     flex-grow: 1;
+}
+
+.filter-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.filter-row select {
+    flex: 1;
+}
+
+.selected-unit {
+    flex: 1;
+    background-color: var(--medium-bg);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    color: var(--gold);
+    border: 1px solid var(--dark-gold);
+}
+
+.results-counter {
+    background-color: var(--medium-bg);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: var(--text-color);
+    display: flex;
+    justify-content: flex-end;
 }
 
 .soldiers-list {
