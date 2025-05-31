@@ -1533,41 +1533,59 @@ function filterAssignableSoldiers() {
  * @returns {HTMLElement} Élément HTML du soldat
  */
 function createSoldierItemForAssignment(soldier) {
+    // Vérifier que le soldat a des données valides
+    if (!soldier || !soldier.id) {
+        console.error('Données de soldat invalides:', soldier);
+        return document.createElement('div'); // Retourner un div vide
+    }
+    
+    // S'assurer que toutes les propriétés nécessaires existent
+    const safeData = {
+        id: soldier.id,
+        rank: soldier.rank || '',
+        lastName: soldier.lastName || 'Sans nom',
+        firstName: soldier.firstName || '',
+        unit: soldier.unit || 'Sans unité',
+        status: soldier.status || 'Inconnu'
+    };
+    
     const formation = formationsData.find(f => f.id === selectedFormationId);
-    const isParticipant = formation && formation.participants.includes(soldier.id);
+    const isParticipant = formation && formation.participants && formation.participants.includes(safeData.id);
     const isEligible = formation ? checkEligibility(soldier, formation) : true;
     
     const soldierItem = document.createElement('div');
     soldierItem.className = `soldier-item ${isParticipant ? 'participant' : ''} ${!isEligible ? 'ineligible' : ''}`;
-    soldierItem.setAttribute('data-soldier-id', soldier.id);
+    soldierItem.setAttribute('data-soldier-id', safeData.id);
     
-    // Créer le contenu HTML du soldat
+    // Créer le contenu HTML du soldat avec les données sécurisées
     soldierItem.innerHTML = `
         <div class="soldier-checkbox">
-            <input type="checkbox" id="soldier-${soldier.id}" ${isParticipant ? 'checked disabled' : ''} ${!isEligible && !isParticipant ? 'disabled' : ''}>
+            <input type="checkbox" id="soldier-${safeData.id}" ${isParticipant ? 'checked disabled' : ''} ${!isEligible && !isParticipant ? 'disabled' : ''}>
         </div>
         <div class="soldier-info">
-            <div class="soldier-name">${soldier.rank} ${soldier.lastName} ${soldier.firstName}</div>
+            <div class="soldier-name">${safeData.rank} ${safeData.lastName} ${safeData.firstName}</div>
             <div class="soldier-details">
-                <span class="soldier-id">ID: ${soldier.id}</span>
-                <span class="soldier-unit">${soldier.unit ? soldier.unit : 'Sans unité'}</span>
-                <span class="soldier-status">${soldier.status}</span>
+                <span class="soldier-id">ID: ${safeData.id}</span>
+                <span class="soldier-unit">${safeData.unit}</span>
+                <span class="soldier-status">${safeData.status}</span>
             </div>
         </div>
     `;
     
     // Ajouter un gestionnaire d'événement pour la sélection
-    const checkbox = soldierItem.querySelector(`#soldier-${soldier.id}`);
+    const checkbox = soldierItem.querySelector(`#soldier-${safeData.id}`);
     if (checkbox && !isParticipant && isEligible) {
         checkbox.addEventListener('change', function() {
             if (this.checked) {
-                if (!selectedSoldiers.includes(soldier.id)) {
-                    selectedSoldiers.push(soldier.id);
+                if (!selectedSoldiers.includes(safeData.id)) {
+                    selectedSoldiers.push(safeData.id);
+                    console.log(`Soldat ${safeData.lastName} ajouté à la sélection`);
                 }
             } else {
-                const index = selectedSoldiers.indexOf(soldier.id);
+                const index = selectedSoldiers.indexOf(safeData.id);
                 if (index !== -1) {
                     selectedSoldiers.splice(index, 1);
+                    console.log(`Soldat ${safeData.lastName} retiré de la sélection`);
                 }
             }
             console.log('Soldats sélectionnés:', selectedSoldiers);
@@ -1616,35 +1634,66 @@ function deleteFormation(formationId) {
  * @param {Function} onConfirm - Fonction à exécuter si l'utilisateur confirme
  */
 function showConfirmationDialog(title, message, onConfirm) {
+    console.log('Affichage de la boîte de dialogue de confirmation');
+    
+    // Vérifier s'il y a déjà une boîte de dialogue ouverte et la supprimer
+    const existingDialog = document.querySelector('.confirmation-dialog');
+    if (existingDialog) {
+        console.log('Suppression d\'une boîte de dialogue existante');
+        document.body.removeChild(existingDialog);
+    }
+    
     // Créer l'élément de la boîte de dialogue
     const dialog = document.createElement('div');
     dialog.className = 'confirmation-dialog';
+    dialog.style.display = 'flex';
+    dialog.style.position = 'fixed';
+    dialog.style.top = '0';
+    dialog.style.left = '0';
+    dialog.style.width = '100%';
+    dialog.style.height = '100%';
+    dialog.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    dialog.style.justifyContent = 'center';
+    dialog.style.alignItems = 'center';
+    dialog.style.zIndex = '9999';
     
     dialog.innerHTML = `
-        <div class="confirmation-content">
-            <h3>${title}</h3>
+        <div class="confirmation-content" style="background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); max-width: 400px; width: 100%;">
+            <h3 style="margin-top: 0; color: #333;">${title}</h3>
             <p>${message}</p>
-            <div class="confirmation-buttons">
-                <button class="cancel-btn">Annuler</button>
-                <button class="confirm-btn danger-btn">Confirmer</button>
+            <div class="confirmation-buttons" style="display: flex; justify-content: flex-end; margin-top: 20px;">
+                <button class="cancel-btn" style="margin-left: 10px; padding: 8px 15px; border: none; border-radius: 3px; cursor: pointer; background-color: #95a5a6; color: white;">Annuler</button>
+                <button class="confirm-btn danger-btn" style="margin-left: 10px; padding: 8px 15px; border: none; border-radius: 3px; cursor: pointer; background-color: #e74c3c; color: white;">Confirmer</button>
             </div>
         </div>
     `;
     
     // Ajouter la boîte de dialogue au document
     document.body.appendChild(dialog);
+    console.log('Boîte de dialogue ajoutée au DOM');
     
     // Ajouter les écouteurs d'événements
     const cancelBtn = dialog.querySelector('.cancel-btn');
     const confirmBtn = dialog.querySelector('.confirm-btn');
     
     cancelBtn.addEventListener('click', () => {
+        console.log('Annulation de la confirmation');
         document.body.removeChild(dialog);
     });
     
     confirmBtn.addEventListener('click', () => {
+        console.log('Confirmation acceptée, exécution de l\'action');
         onConfirm();
         document.body.removeChild(dialog);
+    });
+    
+    // Fermeture par Escape
+    document.addEventListener('keydown', function escapeHandler(event) {
+        if (event.key === 'Escape') {
+            console.log('Fermeture de la boîte de dialogue par Escape');
+            document.body.removeChild(dialog);
+            document.removeEventListener('keydown', escapeHandler);
+        }
     });
 }
 
