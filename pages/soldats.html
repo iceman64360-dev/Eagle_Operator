@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../assets/css/soldats.css">
     <link rel="stylesheet" href="../assets/css/no-photos.css"> <!-- Masquer les éléments liés aux photos -->
     <link rel="stylesheet" href="../assets/css/progression.css"> <!-- Styles pour la progression des recrues -->
+    <link rel="stylesheet" href="../assets/css/dossier-soldat.css"> <!-- Styles pour le dossier soldat et les sanctions -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -157,12 +158,13 @@
                         
                         <!-- Onglet Sanctions -->
                         <div class="tab-pane" id="sanctions-tab">
-                            <h3>Sanctions Disciplinaires</h3>
-                            <div class="sanctions-list">
-                                <p class="placeholder-text">Aucune sanction enregistrée pour ce soldat.</p>
-                                <ul id="sanctions-list" class="timeline-list">
-                                    <!-- Les sanctions seront ajoutées ici dynamiquement -->
-                                </ul>
+                            <div class="sanctions-header">
+                                <h3>Sanctions Disciplinaires</h3>
+                                <button id="btn-add-sanction" class="action-btn">Ajouter une sanction</button>
+                            </div>
+                            <div id="sanctions-container" class="sanctions-list">
+                                <p id="no-sanctions-message" class="placeholder-text">Aucune sanction enregistrée pour ce soldat.</p>
+                                <!-- Les sanctions seront ajoutées ici dynamiquement -->
                             </div>
                         </div>
                         
@@ -362,6 +364,44 @@
                 </form>
             </div>
         </div>
+
+        <!-- MODALE AJOUT SANCTION -->
+        <div id="sanction-modal" class="modal-bg hidden-modal">
+            <div class="modal military-modal">
+                <div class="modal-header-container">
+                    <h2>Ajouter une sanction</h2>
+                    <button class="close-modal-btn" id="close-sanction-modal">Fermer</button>
+                </div>
+                <form id="sanction-form">
+                    <div class="form-group">
+                        <label for="sanction-type">Type de sanction:</label>
+                        <select id="sanction-type" required title="Type de sanction">
+                            <option value="">Sélectionner un type</option>
+                            <option value="Avertissement">Avertissement</option>
+                            <option value="Blâme">Blâme</option>
+                            <option value="Consigne">Consigne</option>
+                            <option value="Suspension">Suspension</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="sanction-motif">Motif:</label>
+                        <textarea id="sanction-motif" required title="Motif de la sanction"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="sanction-date">Date:</label>
+                        <input type="date" id="sanction-date" required title="Date de la sanction">
+                    </div>
+                    <div class="form-group">
+                        <label for="sanction-observateur">Observateur:</label>
+                        <input type="text" id="sanction-observateur" required title="Nom de l'observateur">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="cancel-sanction" class="action-btn">Annuler</button>
+                        <button type="submit" id="submit-sanction" class="affect-btn">Valider</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </main>
 
     <footer>
@@ -372,5 +412,6 @@
     <script src="../assets/js/soldierPhotoManager.js"></script>
     <script src="../assets/js/dataManager.js"></script>
     <script src="../assets/js/progressionManager.js"></script>
+    <script src="../assets/js/sanctionManager.js"></script>
 </body>
 </html>

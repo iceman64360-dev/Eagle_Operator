@@ -491,6 +491,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Afficher la modale
         const soldierFileModal = document.getElementById('soldierFileModal');
+        // Assurer que la modale est centrée
+        soldierFileModal.style.display = 'flex';
+        soldierFileModal.style.justifyContent = 'center';
+        soldierFileModal.style.alignItems = 'center';
         soldierFileModal.classList.remove('hidden-modal');
         
         // Gérer la fermeture de la modale - version simplifiée pour éviter les blocages
@@ -516,6 +520,17 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Afficher l'historique
         displayHistory(soldier);
+        
+        // Initialiser le gestionnaire de sanctions si la fonction existe
+        if (typeof initSanctionManager === 'function') {
+            initSanctionManager(soldierId);
+        } else {
+            console.log('La fonction initSanctionManager n\'est pas disponible');
+            // Essayer d'afficher les sanctions directement si disponible
+            if (typeof displaySanctions === 'function') {
+                displaySanctions(soldier);
+            }
+        }
     };
     
     // Fonction pour configurer les boutons d'action

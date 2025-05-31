@@ -1,13 +1,10 @@
 // assets/js/sanctionManager.js
 // Gestion des sanctions pour les soldats
 
-/**
- * Initialise le module de sanctions
- */
-function initSanctionManager() {
+document.addEventListener('DOMContentLoaded', () => {
     console.log('Initialisation du module de sanctions');
     setupSanctionModal();
-}
+});
 
 /**
  * Configure la modale d'ajout de sanction
@@ -15,7 +12,7 @@ function initSanctionManager() {
 function setupSanctionModal() {
     const modal = document.getElementById('sanction-modal');
     const btnAddSanction = document.getElementById('btn-add-sanction');
-    const closeModal = document.querySelector('#sanction-modal .close-modal');
+    const closeModalBtn = document.getElementById('close-sanction-modal');
     const cancelBtn = document.getElementById('cancel-sanction');
     const form = document.getElementById('sanction-form');
     
@@ -34,8 +31,8 @@ function setupSanctionModal() {
     }
     
     // Fermer la modale
-    if (closeModal) {
-        closeModal.addEventListener('click', () => {
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
             modal.classList.add('hidden-modal');
             resetSanctionForm();
         });
@@ -79,8 +76,8 @@ function resetSanctionForm() {
  * Ajoute une sanction au soldat actuellement affiché
  */
 function addSanction() {
-    // Récupérer l'ID du soldat actuel
-    const soldierId = document.getElementById('soldier-id').textContent;
+    // Récupérer l'ID du soldat actuel depuis le dossier ouvert
+    const soldierId = document.getElementById('file-id').textContent;
     if (!soldierId) {
         console.error('Impossible d\'ajouter une sanction : aucun soldat sélectionné');
         return;
@@ -126,7 +123,22 @@ function addSanction() {
     soldiers[soldierIndex].sanctions.push(sanction);
     
     // Ajouter l'entrée dans l'historique
-    addHistoryEntry(soldiers[soldierIndex], 'sanction', '', `${type}: ${motif}`);
+    if (typeof addHistoryEntry === 'function') {
+        addHistoryEntry(soldiers[soldierIndex], 'sanction', '', `${type}: ${motif}`);
+    } else {
+        // Créer une entrée d'historique si la fonction n'existe pas
+        if (!soldiers[soldierIndex].historique) {
+            soldiers[soldierIndex].historique = [];
+        }
+        
+        soldiers[soldierIndex].historique.push({
+            type: 'sanction',
+            date: new Date().toISOString(),
+            ancienne_valeur: '',
+            nouvelle_valeur: `${type}: ${motif}`,
+            timestamp: new Date().getTime()
+        });
+    }
     
     // Sauvegarder les données
     localStorage.setItem('eagleOperator_soldiers', JSON.stringify(soldiers));
@@ -135,13 +147,18 @@ function addSanction() {
     document.getElementById('sanction-modal').classList.add('hidden-modal');
     resetSanctionForm();
     
-    // Mettre à jour l'affichage
+    // Mettre à jour l'affichage des sanctions
     displaySanctions(soldiers[soldierIndex]);
     
-    // Mettre à jour l'historique
-    displayHistory(soldiers[soldierIndex]);
+    // Mettre à jour l'historique si la fonction existe
+    if (typeof displayHistory === 'function') {
+        displayHistory(soldiers[soldierIndex]);
+    } else {
+        // Rafraîchir l'historique dans la modale du dossier soldat
+        refreshHistoryTab(soldiers[soldierIndex]);
+    }
     
-    // Synchroniser les données
+    // Synchroniser les données si la fonction existe
     if (typeof synchronizeRecruitData === 'function') {
         synchronizeRecruitData(soldiers[soldierIndex]);
     }
@@ -151,52 +168,158 @@ function addSanction() {
 
 /**
  * Affiche les sanctions d'un soldat
- * @param {Object} soldier - Le soldat dont on veut afficher les sanctions
+ * @param {Object} soldier - Objet soldat
  */
 function displaySanctions(soldier) {
-    const sanctionsList = document.getElementById('sanctions-list');
-    const noSanctionsMessage = document.getElementById('no-sanctions-message');
+    const container = document.getElementById('sanctions-container');
+    const noSanctionsMsg = document.getElementById('no-sanctions-message');
     
-    if (!sanctionsList) return;
+    if (!container) {
+        console.error('Conteneur des sanctions non trouvé');
+        return;
+    }
     
-    // Vider la liste des sanctions (sauf le message "aucune sanction")
-    const elementsToRemove = Array.from(sanctionsList.querySelectorAll('.sanction-card'));
-    elementsToRemove.forEach(el => el.remove());
+    // Nettoyer le conteneur (sauf le message "aucune sanction")
+    const elements = container.querySelectorAll('.sanction-item');
+    elements.forEach(el => el.remove());
     
     // Vérifier si le soldat a des sanctions
     if (!soldier.sanctions || soldier.sanctions.length === 0) {
-        if (noSanctionsMessage) noSanctionsMessage.style.display = 'block';
+        if (noSanctionsMsg) noSanctionsMsg.style.display = 'block';
         return;
     }
     
     // Masquer le message "aucune sanction"
-    if (noSanctionsMessage) noSanctionsMessage.style.display = 'none';
+    if (noSanctionsMsg) noSanctionsMsg.style.display = 'none';
     
-    // Trier les sanctions par date (la plus récente en premier)
+    // Trier les sanctions par date (plus récentes d'abord)
     const sortedSanctions = [...soldier.sanctions].sort((a, b) => {
         return new Date(b.date) - new Date(a.date);
     });
     
     // Afficher chaque sanction
     sortedSanctions.forEach(sanction => {
-        const sanctionCard = document.createElement('div');
-        sanctionCard.className = 'sanction-card';
-        sanctionCard.dataset.id = sanction.id;
+        const sanctionElement = document.createElement('div');
+        sanctionElement.className = 'sanction-item';
+        sanctionElement.dataset.id = sanction.id;
         
         // Formater la date
         const formattedDate = formatDate(sanction.date);
         
-        sanctionCard.innerHTML = `
-            <div class="sanction-header">
+        // Déterminer la classe CSS en fonction du type de sanction
+        let severityClass = '';
+        switch (sanction.type) {
+            case 'Avertissement':
+                severityClass = 'warning';
+                break;
+            case 'Blâme':
+                severityClass = 'medium';
+                break;
+            case 'Consigne':
+                severityClass = 'serious';
+                break;
+            case 'Suspension':
+                severityClass = 'severe';
+                break;
+            default:
+                severityClass = '';
+        }
+        
+        sanctionElement.innerHTML = `
+            <div class="sanction-header ${severityClass}">
                 <span class="sanction-type">${sanction.type}</span>
                 <span class="sanction-date">${formattedDate}</span>
             </div>
-            <div class="sanction-motif">${sanction.motif}</div>
-            <div class="sanction-observateur">Observé par: ${sanction.observateur}</div>
+            <div class="sanction-content">
+                <p class="sanction-motif">${sanction.motif}</p>
+                <p class="sanction-observer">Observateur: ${sanction.observateur}</p>
+            </div>
         `;
         
-        sanctionsList.appendChild(sanctionCard);
+        container.appendChild(sanctionElement);
     });
+}
+
+/**
+ * Rafraîchit l'onglet historique dans la modale du dossier soldat
+ * @param {Object} soldier - Objet soldat
+ */
+function refreshHistoryTab(soldier) {
+    const historyList = document.getElementById('history-list');
+    const historyPlaceholder = document.getElementById('history-placeholder');
+    
+    if (!historyList || !historyPlaceholder) {
+        console.error('Éléments d\'historique non trouvés');
+        return;
+    }
+    
+    // Vérifier si le soldat a un historique
+    if (!soldier.historique || soldier.historique.length === 0) {
+        historyList.innerHTML = '';
+        historyPlaceholder.style.display = 'block';
+        return;
+    }
+    
+    // Masquer le message "aucun historique"
+    historyPlaceholder.style.display = 'none';
+    
+    // Trier l'historique par date (plus récentes d'abord)
+    const sortedHistory = [...soldier.historique].sort((a, b) => {
+        return b.timestamp - a.timestamp;
+    });
+    
+    // Générer le HTML pour l'historique
+    let historyHTML = '';
+    
+    sortedHistory.forEach(entry => {
+        const date = new Date(entry.date);
+        const formattedDate = `${date.toLocaleDateString()} à ${date.toLocaleTimeString()}`;
+        
+        let typeLabel = '';
+        let typeClass = '';
+        let contentHTML = '';
+        
+        switch (entry.type) {
+            case 'grade':
+                typeLabel = 'Changement de Grade';
+                typeClass = 'grade-change';
+                contentHTML = `<p>${entry.ancienne_valeur} → ${entry.nouvelle_valeur}</p>`;
+                break;
+            case 'statut':
+                typeLabel = 'Changement de Statut';
+                typeClass = 'status-change';
+                contentHTML = `<p>${entry.ancienne_valeur} → ${entry.nouvelle_valeur}</p>`;
+                break;
+            case 'unite':
+                typeLabel = 'Changement d\'Unité';
+                typeClass = 'unit-change';
+                contentHTML = `<p>${entry.ancienne_valeur} → ${entry.nouvelle_valeur}</p>`;
+                break;
+            case 'sanction':
+                typeLabel = 'Sanction';
+                typeClass = 'sanction-entry';
+                contentHTML = `<p>${entry.nouvelle_valeur}</p>`;
+                break;
+            default:
+                typeLabel = 'Modification';
+                typeClass = 'other-change';
+                contentHTML = `<p>${entry.nouvelle_valeur}</p>`;
+        }
+        
+        historyHTML += `
+            <li class="history-item ${typeClass}" data-type="${entry.type}">
+                <div class="history-header">
+                    <span class="history-type">${typeLabel}</span>
+                    <span class="history-date">${formattedDate}</span>
+                </div>
+                <div class="history-content">
+                    ${contentHTML}
+                </div>
+            </li>
+        `;
+    });
+    
+    historyList.innerHTML = historyHTML;
 }
 
 /**
@@ -215,6 +338,44 @@ function formatDate(dateString) {
  */
 function generateUniqueId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+}
+
+/**
+ * Initialise le gestionnaire de sanctions pour un soldat spécifique
+ * Cette fonction est appelée lorsqu'un dossier soldat est ouvert
+ * @param {string} soldierId - ID du soldat dont le dossier est ouvert
+ */
+function initSanctionManager(soldierId) {
+    console.log('Initialisation du gestionnaire de sanctions pour le soldat:', soldierId);
+    
+    // Récupérer les données du soldat
+    const soldiers = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+    const soldier = soldiers.find(s => s.id === soldierId);
+    
+    if (!soldier) {
+        console.error(`Soldat avec ID ${soldierId} non trouvé`);
+        return;
+    }
+    
+    // Configurer la modale d'ajout de sanction
+    setupSanctionModal();
+    
+    // Afficher les sanctions existantes
+    displaySanctions(soldier);
+    
+    // Configurer le bouton d'ajout de sanction
+    const btnAddSanction = document.getElementById('btn-add-sanction');
+    if (btnAddSanction) {
+        // Supprimer les écouteurs d'événements existants pour éviter les doublons
+        const newBtn = btnAddSanction.cloneNode(true);
+        btnAddSanction.parentNode.replaceChild(newBtn, btnAddSanction);
+        
+        // Ajouter le nouvel écouteur d'événement
+        newBtn.addEventListener('click', () => {
+            const modal = document.getElementById('sanction-modal');
+            if (modal) modal.classList.remove('hidden-modal');
+        });
+    }
 }
 
 // Exporter les fonctions pour les rendre disponibles globalement
