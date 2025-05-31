@@ -234,12 +234,19 @@ function setupFormationDetailModal() {
     
     // Assigner des soldats
     if (btnAssignSoldiers) {
+        console.log('Bouton assigner des soldats trouvé');
         btnAssignSoldiers.addEventListener('click', () => {
+            console.log('Bouton assigner des soldats cliqué');
             if (selectedFormationId) {
+                console.log('Formation sélectionnée ID:', selectedFormationId);
                 modal.classList.add('hidden-modal');
                 openAssignSoldiersModal(selectedFormationId);
+            } else {
+                console.error('Aucune formation sélectionnée');
             }
         });
+    } else {
+        console.error('Bouton assigner des soldats non trouvé');
     }
 }
 
@@ -249,8 +256,8 @@ function setupFormationDetailModal() {
 function setupAssignSoldiersModal() {
     const modal = document.getElementById('assign-soldiers-modal');
     const closeBtn = document.getElementById('close-assign-soldiers-btn');
-    const cancelBtn = document.getElementById('cancel-assign-soldiers-btn');
-    const confirmBtn = document.getElementById('confirm-assign-soldiers-btn');
+    const cancelBtn = document.getElementById('cancel-assign');
+    const confirmBtn = document.getElementById('confirm-assign');
     const soldierSearch = document.getElementById('soldier-search');
     const soldierFilter = document.getElementById('soldier-filter');
     const unitFilter = document.getElementById('unit-filter');
@@ -780,9 +787,15 @@ function saveFormationFromForm() {
  * @param {string} formationId - Identifiant de la formation
  */
 function openAssignSoldiersModal(formationId) {
+    console.log('Ouverture de la modale d\'assignation pour la formation:', formationId);
     const formation = formationsData.find(f => f.id === formationId);
     
-    if (!formation) return;
+    if (!formation) {
+        console.error('Formation non trouvée avec ID:', formationId);
+        return;
+    }
+    
+    console.log('Formation trouvée:', formation.name);
     
     // Mettre à jour l'ID de la formation sélectionnée
     selectedFormationId = formationId;
@@ -796,11 +809,15 @@ function openAssignSoldiersModal(formationId) {
     // Afficher la modale
     const modal = document.getElementById('assign-soldiers-modal');
     if (modal) {
+        console.log('Modale d\'assignation trouvée, ouverture...');
         // Assurer que la modale est centrée
         modal.style.display = 'flex';
         modal.style.justifyContent = 'center';
         modal.style.alignItems = 'center';
         modal.classList.remove('hidden-modal');
+        console.log('Modale d\'assignation ouverte');
+    } else {
+        console.error('Modale d\'assignation non trouvée dans le DOM');
     }
 }
 
@@ -809,29 +826,47 @@ function openAssignSoldiersModal(formationId) {
  * @param {Object} formation - Données de la formation
  */
 function displayAssignableSoldiers(formation) {
+    console.log('Affichage des soldats assignables pour la formation:', formation.name);
+    
     // Récupérer tous les soldats
     allSoldiersData = JSON.parse(localStorage.getItem('eagleOperator_soldiers') || '[]');
+    console.log('Nombre de soldats chargés:', allSoldiersData.length);
     
     // Afficher les soldats dans l'onglet Soldats
     const soldiersList = document.getElementById('assignable-soldiers-list');
     if (soldiersList) {
+        console.log('Liste des soldats assignables trouvée dans le DOM');
         soldiersList.innerHTML = '';
         
         if (allSoldiersData.length === 0) {
+            console.warn('Aucun soldat disponible dans la base de données');
             soldiersList.innerHTML = '<div class="no-soldiers">Aucun soldat disponible</div>';
             return;
         }
         
         // Filtrer les soldats selon les critères
+        console.log('Filtrage des soldats assignables...');
         filterAssignableSoldiers();
+    } else {
+        console.error('Élément assignable-soldiers-list non trouvé dans le DOM');
     }
     
     // Initialiser l'onglet Unités
     const unitsTab = document.querySelector('.tab[data-tab="units"]');
     if (unitsTab) {
+        console.log('Initialisation de l\'onglet Unités');
         // Préparer l'onglet Unités pour le chargement ultérieur
-        document.getElementById('assignable-units-list').innerHTML = '';
-        document.getElementById('unit-soldiers-list').innerHTML = '';
+        const unitsList = document.getElementById('assignable-units-list');
+        const unitSoldiersList = document.getElementById('unit-soldiers-list');
+        
+        if (unitsList && unitSoldiersList) {
+            unitsList.innerHTML = '';
+            unitSoldiersList.innerHTML = '';
+        } else {
+            console.error('Éléments de liste d\'unités non trouvés dans le DOM');
+        }
+    } else {
+        console.error('Onglet Unités non trouvé dans le DOM');
     }
 }
 
