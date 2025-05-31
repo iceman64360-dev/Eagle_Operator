@@ -205,6 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             }
         }
+        return role;
+    }
+    
     function filterAndSearchSoldiers() {
     const searchTerm = searchInput.value.toLowerCase();
     const selectedGrade = gradeFilter.value;
